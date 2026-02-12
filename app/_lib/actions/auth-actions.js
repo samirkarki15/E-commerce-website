@@ -1,0 +1,294 @@
+// app/_lib/actions/auth-actions.js - UPDATED WITH NEXT AUTH ID
+"use server";
+
+import { supabaseAdmin } from "@/app/_lib/supabase/admin";
+import { auth } from "@/app/_lib/auth";
+
+// Add this at the top - list of admin emails
+const ADMIN_EMAILS = [
+  "your-admin-email@gmail.com", // ← YOUR EMAIL HERE
+  "admin@example.com",
+];
+
+// UPDATED: Accept NextAuth user ID parameter
+export async function createOrGetUser(email, name, image, nextAuthId = null) {
+  try {
+    console.log("🔄 Creating/getting user:", {
+      email,
+      name,
+      hasNextAuthId: !!nextAuthId,
+      nextAuthId,
+    });
+
+    // FIRST: Try to find existing user by email
+    const { data: existingUser, error: findError } = await supabaseAdmin
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (findError && findError.code !== "PGRST116") {
+      console.error("❌ Error finding user:", findError);
+      throw findError;
+    }
+
+    if (existingUser) {
+      console.log("✅ User already exists:", existingUser.id);
+      return existingUser;
+    }
+
+    // Determine role based on email
+    const normalizedEmail = email.toLowerCase();
+    const isAdminEmail = ADMIN_EMAILS.includes(normalizedEmail);
+    const role = isAdminEmail ? "admin" : "customer";
+
+    console.log(`📝 Creating new user with role: ${role}`);
+
+    // Prepare user data
+    const userData = {
+      email,
+      name,
+      image,
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // IMPORTANT: Try to use NextAuth ID if provided
+    if (nextAuthId) {
+      userData.id = nextAuthId;
+      console.log(`🔑 Using NextAuth ID: ${nextAuthId}`);
+    }
+
+    // Create new user
+    const { data: newUser, error: insertError } = await supabaseAdmin
+      .from("users")
+      .insert([userData])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("❌ Error creating user:", insertError);
+
+      // If ID conflict (NextAuth ID already exists with different email)
+      if (insertError.code === "23505") {
+        // Unique violation
+        console.log("🔄 ID conflict, trying without custom ID");
+
+        // Try creating without the ID (let Supabase generate one)
+        delete userData.id;
+
+        const { data: fallbackUser, error: fallbackError } = await supabaseAdmin
+          .from("users")
+          .insert([userData])
+          .select()
+          .single();
+
+        if (fallbackError) {
+          console.error("❌ Fallback creation failed:", fallbackError);
+          throw fallbackError;
+        }
+
+        console.log("✅ User created with auto-generated ID:", fallbackUser.id);
+        return fallbackUser;
+      }
+
+      throw insertError;
+    }
+
+    console.log("🎉 User created successfully:", newUser.id);
+    return newUser;
+  } catch (error) {
+    console.error("💥 Error in createOrGetUser:", error);
+    throw error;
+  }
+}
+
+// ADD THIS: Get user by email (for cart system)
+export async function getUserByEmail(email) {
+  try {
+    const { data: user, error } = await supabaseAdmin
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error getting user by email:", error);
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error in getUserByEmail:", error);
+    return null;
+  }
+}
+
+// ADD THIS: Get user by ID
+export async function getUserById(id) {
+  try {
+    const { data: user, error } = await supabaseAdmin
+      .from("users")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error getting user by ID:", error);
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error in getUserById:", error);
+    return null;
+  }
+}
+
+// ADD THIS: Sync NextAuth user to database
+export async function syncNextAuthUser(nextAuthUser) {
+  try {
+    if (!nextAuthUser?.email) {
+      throw new Error("No email provided");
+    }
+
+    const user = await createOrGetUser(
+      nextAuthUser.email,
+      nextAuthUser.name,
+      nextAuthUser.image,
+      nextAuthUser.id, // Pass NextAuth ID
+    );
+
+    return user;
+  } catch (error) {
+    console.error("Error syncing NextAuth user:", error);
+    throw error;
+  }
+}
+
+// Keep your existing functions but update them to use getUserByEmail
+
+// Function to make existing user admin
+export async function makeUserAdmin(email) {
+  try {
+    console.log(`Making user admin: ${email}`);
+
+    const { data, error } = await supabaseAdmin
+      .from("users")
+      .update({
+        role: "admin",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("email", email)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error making user admin:", error);
+      throw error;
+    }
+
+    console.log("User made admin successfully:", email);
+    return data;
+  } catch (error) {
+    console.error("Error in makeUserAdmin:", error);
+    throw error;
+  }
+}
+
+// Function to check and upgrade user role
+export async function checkAndUpgradeRole(email) {
+  try {
+    const normalizedEmail = email.toLowerCase();
+    const isAdminEmail = ADMIN_EMAILS.includes(normalizedEmail);
+
+    if (!isAdminEmail) {
+      return false;
+    }
+
+    // Check current role
+    const user = await getUserByEmail(email);
+
+    if (!user) {
+      console.log("User not found, cannot upgrade role");
+      return false;
+    }
+
+    // If not admin, upgrade to admin
+    if (user.role !== "admin") {
+      console.log(`Upgrading user ${email} from ${user.role} to admin`);
+      await makeUserAdmin(email);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Error checking/upgrading role:", error);
+    return false;
+  }
+}
+
+// Update requireAdmin to use getUserByEmail
+export async function requireAdmin() {
+  try {
+    // Get current session
+    const session = await auth();
+
+    if (!session?.user?.email) {
+      console.log("❌ Not authenticated");
+      throw new Error("Not authenticated");
+    }
+
+    console.log("🔍 Checking admin status for:", session.user.email);
+
+    // First, check if this email should be admin
+    await checkAndUpgradeRole(session.user.email);
+
+    // Check if user is admin in database
+    const user = await getUserByEmail(session.user.email);
+
+    if (!user) {
+      console.log("❌ User not found in database");
+      throw new Error("User not found");
+    }
+
+    console.log("📊 User role:", user.role);
+
+    if (user.role !== "admin") {
+      console.log("❌ User is not admin");
+      throw new Error("Admin access required");
+    }
+
+    console.log("✅ User is admin");
+    return true;
+  } catch (error) {
+    console.error("💥 Admin check failed:", error.message);
+    throw error;
+  }
+}
+
+export async function isUserAdmin() {
+  try {
+    await requireAdmin();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getCurrentUser() {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.email) {
+      return null;
+    }
+
+    // Get user from database
+    return await getUserByEmail(session.user.email);
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return null;
+  }
+}
