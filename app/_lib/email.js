@@ -3,13 +3,20 @@ import nodemailer from "nodemailer";
 
 const ADMIN_EMAIL = "samirkarki799@gmail.com";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+// Create transporter lazily to avoid issues if env vars aren't set
+function getTransporter() {
+  if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASSWORD) {
+    return null;
+  }
+  
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.SMTP_EMAIL,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
+}
 
 function formatCurrency(amount) {
   return `रु ${Number(amount).toFixed(2)}`;
@@ -219,8 +226,10 @@ export async function sendOrderNotificationEmail({
   customerEmail,
 }) {
   try {
-    if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASSWORD) {
-      return { success: false, error: "Email not configured" };
+    const transporter = getTransporter();
+    
+    if (!transporter) {
+      return { success: false, error: "Email not configured - SMTP credentials missing" };
     }
 
     const html = buildOrderEmailHTML({
@@ -252,6 +261,9 @@ export async function sendOrderNotificationEmail({
     const info = await transporter.sendMail(mailOptions);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error.message || "Failed to send email" 
+    };
   }
 }
