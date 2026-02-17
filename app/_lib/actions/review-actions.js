@@ -13,8 +13,6 @@ const supabase = createClient(
 
 export async function checkUserPurchase(userId, productId) {
   try {
-    console.log("🔍 Checking purchase for:", { userId, productId });
-
     // Get all delivered and paid orders for this user
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
@@ -23,23 +21,16 @@ export async function checkUserPurchase(userId, productId) {
       .eq("status", "delivered")
       .eq("payment_status", "paid");
 
-    console.log("📊 Orders found:", { orders, ordersError });
-
     if (ordersError) {
-      console.error("❌ Error fetching orders:", ordersError);
       return { hasPurchased: false, error: ordersError.message };
     }
 
     if (!orders || orders.length === 0) {
-      console.log("❌ No delivered & paid orders found for user");
       return { hasPurchased: false };
     }
 
-    console.log("✅ User has", orders.length, "delivered & paid orders");
-
     // Get order IDs
     const orderIds = orders.map((order) => order.id);
-    console.log("📋 Order IDs:", orderIds);
 
     // Check if this product is in any of these orders
     const { data: orderItems, error: itemsError } = await supabase
@@ -48,29 +39,14 @@ export async function checkUserPurchase(userId, productId) {
       .in("order_id", orderIds)
       .eq("product_id", productId);
 
-    console.log("🛍️ Order items with this product:", {
-      orderItems,
-      itemsError,
-    });
-
     if (itemsError) {
-      console.error("❌ Error fetching order items:", itemsError);
       return { hasPurchased: false, error: itemsError.message };
     }
 
     const hasPurchased = orderItems && orderItems.length > 0;
 
-    console.log("🎯 FINAL RESULT - hasPurchased:", hasPurchased);
-
-    if (hasPurchased) {
-      console.log("✅ User HAS purchased this product");
-    } else {
-      console.log("❌ User HAS NOT purchased this product");
-    }
-
     return { hasPurchased };
   } catch (error) {
-    console.error("💥 Unexpected error in checkUserPurchase:", error);
     return { hasPurchased: false, error: error.message };
   }
 }
@@ -123,7 +99,6 @@ export async function getProductReviews(productId, options = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching reviews:", error);
       return { reviews: [], total: 0, averageRating: 0, error: error.message };
     }
 
@@ -149,7 +124,6 @@ export async function getProductReviews(productId, options = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getProductReviews:", error);
     return { reviews: [], total: 0, averageRating: 0, error: error.message };
   }
 }
@@ -164,7 +138,6 @@ export async function getReviewStatistics(productId) {
     // REMOVED: .eq("is_approved", true); // Auto-approved now
 
     if (error) {
-      console.error("Error fetching review statistics:", error);
       return {
         averageRating: 0,
         totalReviews: 0,
@@ -191,7 +164,6 @@ export async function getReviewStatistics(productId) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getReviewStatistics:", error);
     return {
       averageRating: 0,
       totalReviews: 0,
@@ -212,13 +184,11 @@ export async function getUserReview(userId, productId) {
       .single();
 
     if (error && error.code !== "PGRST116") {
-      console.error("Error fetching user review:", error);
       return { review: null, error: error.message };
     }
 
     return { review: data || null, error: null };
   } catch (error) {
-    console.error("Unexpected error in getUserReview:", error);
     return { review: null, error: error.message };
   }
 }
@@ -243,7 +213,6 @@ export async function canUserReviewProduct(userId, productId) {
     );
 
     if (purchaseError) {
-      console.error("Purchase check error:", purchaseError);
       return { canReview: false, reason: "purchase_check_error" };
     }
 
@@ -254,7 +223,6 @@ export async function canUserReviewProduct(userId, productId) {
     // All checks passed
     return { canReview: true, reason: "eligible" };
   } catch (error) {
-    console.error("Error in canUserReviewProduct:", error);
     return { canReview: false, reason: "error" };
   }
 }
@@ -323,7 +291,6 @@ export async function submitReview(reviewData, userId) {
       .single();
 
     if (error) {
-      console.error("Error submitting review:", error);
       return { success: false, error: error.message };
     }
 
@@ -340,7 +307,6 @@ export async function submitReview(reviewData, userId) {
       message: "Review submitted successfully! Your review is now visible.",
     };
   } catch (error) {
-    console.error("Unexpected error in submitReview:", error);
     return {
       success: false,
       error: error.message || "An unexpected error occurred",
@@ -390,7 +356,6 @@ export async function updateUserReview(reviewId, reviewData, userId) {
       .single();
 
     if (error) {
-      console.error("Error updating review:", error);
       return { success: false, error: error.message };
     }
 
@@ -401,7 +366,6 @@ export async function updateUserReview(reviewId, reviewData, userId) {
 
     return { success: true, review: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in updateUserReview:", error);
     return { success: false, error: error.message };
   }
 }
@@ -431,7 +395,6 @@ export async function deleteUserReview(reviewId, userId) {
       .eq("id", reviewId);
 
     if (error) {
-      console.error("Error deleting review:", error);
       return { success: false, error: error.message };
     }
 
@@ -442,7 +405,6 @@ export async function deleteUserReview(reviewId, userId) {
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Unexpected error in deleteUserReview:", error);
     return { success: false, error: error.message };
   }
 }
@@ -452,12 +414,8 @@ export async function deleteUserReview(reviewId, userId) {
 
 async function updateProductRatingStats(productId) {
   try {
-    console.log("🔄 Updating rating stats for product:", productId);
-
     const { averageRating, totalReviews } =
       await getReviewStatistics(productId);
-
-    console.log("📊 Calculated stats:", { averageRating, totalReviews });
 
     // Update product table with new rating statistics
     const { error, data } = await supabase
@@ -471,12 +429,8 @@ async function updateProductRatingStats(productId) {
       .select();
 
     if (error) {
-      console.error("❌ Error updating product rating stats:", error);
-    } else {
-      console.log("✅ Successfully updated product rating:", data);
     }
   } catch (error) {
-    console.error("💥 Error in updateProductRatingStats:", error);
   }
 }
 
@@ -504,13 +458,11 @@ export async function getPendingReviews() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching pending reviews:", error);
       return { reviews: [], error: error.message };
     }
 
     return { reviews: data || [], error: null };
   } catch (error) {
-    console.error("Unexpected error in getPendingReviews:", error);
     return { reviews: [], error: error.message };
   }
 }
@@ -529,7 +481,6 @@ export async function updateReviewStatus(reviewId, isApproved) {
       .single();
 
     if (error) {
-      console.error("Error updating review status:", error);
       return { success: false, error: error.message };
     }
 
@@ -543,7 +494,6 @@ export async function updateReviewStatus(reviewId, isApproved) {
 
     return { success: true, review: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in updateReviewStatus:", error);
     return { success: false, error: error.message };
   }
 }
@@ -595,7 +545,6 @@ export async function getAllReviewsForAdmin(filters = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching all reviews:", error);
       return { reviews: [], total: 0, error: error.message };
     }
 
@@ -607,7 +556,6 @@ export async function getAllReviewsForAdmin(filters = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getAllReviewsForAdmin:", error);
     return { reviews: [], total: 0, error: error.message };
   }
 }
@@ -619,7 +567,6 @@ export async function getAdminReviewStats() {
     const { data, error } = await supabase.from("reviews").select("rating");
 
     if (error) {
-      console.error("Error fetching review stats:", error);
       return {
         totalReviews: 0,
         averageRating: 0,
@@ -646,7 +593,6 @@ export async function getAdminReviewStats() {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getAdminReviewStats:", error);
     return {
       totalReviews: 0,
       averageRating: 0,
@@ -669,7 +615,6 @@ export async function deleteReviewAsAdmin(reviewId) {
       .single();
 
     if (fetchError) {
-      console.error("Error fetching review for deletion:", fetchError);
       return { success: false, error: "Review not found" };
     }
 
@@ -680,7 +625,6 @@ export async function deleteReviewAsAdmin(reviewId) {
       .eq("id", reviewId);
 
     if (error) {
-      console.error("Error deleting review:", error);
       return { success: false, error: error.message };
     }
 
@@ -692,7 +636,6 @@ export async function deleteReviewAsAdmin(reviewId) {
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Unexpected error in deleteReviewAsAdmin:", error);
     return { success: false, error: error.message };
   }
 }

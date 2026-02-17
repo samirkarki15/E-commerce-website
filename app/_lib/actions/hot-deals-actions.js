@@ -12,8 +12,6 @@ const supabase = createClient(
 // Get HOT products with significant discounts for Hot Deals section
 export async function getHotDeals(limit = 8, category = "all") {
   try {
-    console.log("🔥 Fetching HOT DEALS products...", { limit, category });
-
     let query = supabase
       .from("products")
       .select("*")
@@ -33,27 +31,17 @@ export async function getHotDeals(limit = 8, category = "all") {
 
     const { data, error } = await query;
 
-    console.log("📊 Hot deals query result:", {
-      hasError: !!error,
-      error: error?.message,
-      count: data?.length || 0,
-      data: data,
-    });
-
     if (error) {
-      console.error("❌ Error fetching hot deals:", error);
       return [];
     }
 
     // If no hot products found, return empty array
     if (!data || data.length === 0) {
-      console.log("ℹ️ No hot deal products found");
       return [];
     }
 
     return transformProducts(data);
   } catch (error) {
-    console.error("💥 Unexpected error in getHotDeals:", error);
     return [];
   }
 }
@@ -148,8 +136,6 @@ function transformProducts(products) {
 // Get hot deals categories
 export async function getHotDealsCategories() {
   try {
-    console.log("🔄 Fetching categories for hot deals...");
-
     const { data, error } = await supabase
       .from("products")
       .select("category_name")
@@ -158,14 +144,7 @@ export async function getHotDealsCategories() {
       .not("category_name", "is", null)
       .limit(10);
 
-    console.log("📊 Hot deals categories query result:", {
-      hasError: !!error,
-      error: error?.message,
-      count: data?.length || 0,
-    });
-
     if (error) {
-      console.error("❌ Error fetching hot deals categories:", error);
       return getDefaultCategories();
     }
 
@@ -174,7 +153,6 @@ export async function getHotDealsCategories() {
     ];
 
     if (categories.length === 0) {
-      console.log("ℹ️ No hot deal categories found");
       return getDefaultCategories();
     }
 
@@ -186,13 +164,8 @@ export async function getHotDealsCategories() {
       })),
     ].slice(0, 5);
 
-    console.log(
-      "✅ Hot deal categories found:",
-      formattedCategories.map((c) => c.name),
-    );
     return formattedCategories;
   } catch (error) {
-    console.error("💥 Unexpected error:", error);
     return getDefaultCategories();
   }
 }

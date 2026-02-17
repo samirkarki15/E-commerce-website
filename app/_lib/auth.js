@@ -21,8 +21,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log("🔐 SignIn callback started for:", user?.email);
-
       try {
         // IMPORTANT: Pass NextAuth user ID to createOrGetUser
         const dbUser = await createOrGetUser(
@@ -31,11 +29,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.image,
           user.id, // ← PASS THE NEXT AUTH USER ID HERE
         );
-        console.log("✅ User in database:", dbUser);
-
         return true;
       } catch (error) {
-        console.error("❌ Error in signIn callback:", error);
         return false;
       }
     },
@@ -58,7 +53,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.user.googleId = token.sub;
           }
         } catch (error) {
-          console.error("Error getting user role:", error);
           // Fallback: at least set the google ID if database lookup fails
           session.user.id = token.sub;
         }

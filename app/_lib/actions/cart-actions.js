@@ -35,11 +35,8 @@ export async function getUserId() {
     const session = await auth();
 
     if (!session?.user?.email) {
-      console.log("🔍 No user email in session");
       return null;
     }
-
-    console.log("🔍 Looking up user by email:", session.user.email);
 
     // Try to find user by email
     const { data: user, error } = await supabase
@@ -49,29 +46,17 @@ export async function getUserId() {
       .maybeSingle();
 
     if (error) {
-      console.error("❌ Error finding user:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
       return null;
     }
 
     if (user) {
-      console.log("✅ Found user ID:", user.id);
       return user.id;
     }
 
     // User not found, try to create one
-    console.error("❌ USER NOT FOUND IN DATABASE - Creating user...");
-    console.error("Session email:", session.user.email);
-    console.error("Session user:", {
-      name: session.user.name,
-      email: session.user.email,
-      image: session.user.image,
-    });
 
     // Try to create user on the fly
     try {
-      console.log("🔄 Attempting to create user on the fly...");
-
       const newUserData = {
         email: session.user.email,
         name: session.user.name || session.user.email.split("@")[0],
@@ -81,8 +66,6 @@ export async function getUserId() {
         updated_at: new Date().toISOString(),
       };
 
-      console.log("📝 Inserting user with data:", newUserData);
-
       const { data: newUser, error: insertError } = await supabase
         .from("users")
         .insert([newUserData])
@@ -90,28 +73,18 @@ export async function getUserId() {
         .single();
 
       if (insertError) {
-        console.error("❌ Failed to create user - Insert error:", insertError);
-        console.error(
-          "Insert error details:",
-          JSON.stringify(insertError, null, 2),
-        );
         return null;
       }
 
       if (newUser) {
-        console.log("✅ Created user on the fly:", newUser.id);
         return newUser.id;
       } else {
-        console.error("❌ User creation returned no data");
         return null;
       }
     } catch (createError) {
-      console.error("❌ Failed to create user - Exception:", createError);
-      console.error("Exception details:", createError.message);
       return null;
     }
   } catch (error) {
-    console.error("💥 Error in getUserId:", error);
     return null;
   }
 }
@@ -119,21 +92,16 @@ export async function getUserId() {
 // ADD ITEM TO CART - WITH USER CREATION FALLBACK
 export async function addToCart(productId, quantity = 1) {
   try {
-    console.log("🛒 addToCart called for product:", productId);
-
     // Check authentication
     const session = await auth();
 
     if (!session?.user) {
-      console.log("❌ User not authenticated");
       return {
         success: false,
         error: "login_required",
         message: "Please login to add items to cart",
       };
     }
-
-    console.log("🔐 User authenticated:", session.user.email);
 
     // Get user ID (with auto-create fallback)
     const userId = await getUserId();
@@ -147,8 +115,6 @@ export async function addToCart(productId, quantity = 1) {
       };
     }
 
-    console.log("✅ Using user ID:", userId);
-
     // Validate product
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -158,15 +124,8 @@ export async function addToCart(productId, quantity = 1) {
       .single();
 
     if (productError || !product) {
-      console.error("❌ Product error:", productError);
       return { success: false, error: "Product not available" };
     }
-
-    console.log("✅ Product found:", {
-      id: product.id,
-      name: product.name,
-      availableQty: product.quantity,
-    });
 
     if (product.quantity < quantity) {
       return { success: false, error: `Only ${product.quantity} in stock` };
@@ -181,11 +140,9 @@ export async function addToCart(productId, quantity = 1) {
       .maybeSingle();
 
     if (cartFetchError) {
-      console.error("❌ Cart fetch error:", cartFetchError);
     }
 
     if (!cart) {
-      console.log("📦 Creating new cart for user ID:", userId);
       const { data: newCart, error: cartError } = await supabase
         .from("carts")
         .insert([
@@ -199,14 +156,8 @@ export async function addToCart(productId, quantity = 1) {
         .single();
 
       if (cartError) {
-        console.error("❌ Cart creation error:", cartError);
-
         // If foreign key error, user doesn't exist
         if (cartError.code === "23503") {
-          console.error("💥 FOREIGN KEY ERROR - User doesn't exist!");
-          console.error("Attempted user_id:", userId);
-          console.error("Session email:", session.user.email);
-
           return {
             success: false,
             error: "account_error",
@@ -229,16 +180,9 @@ export async function addToCart(productId, quantity = 1) {
       .maybeSingle();
 
     if (existingError) {
-      console.error("❌ Check existing error:", existingError);
     }
 
     if (existing) {
-      console.log(
-        "📝 Item already in cart, updating quantity from",
-        existing.quantity,
-        "to",
-        existing.quantity + quantity,
-      );
       const { error: updateError } = await supabase
         .from("cart_items")
         .update({
@@ -248,16 +192,9 @@ export async function addToCart(productId, quantity = 1) {
         .eq("id", existing.id);
 
       if (updateError) {
-        console.error("❌ Update error:", updateError);
         return { success: false, error: "Failed to update cart" };
       }
-      console.log("✅ Item quantity updated successfully");
     } else {
-      console.log("🆕 Adding new item to cart:", {
-        cartId: cart.id,
-        productId: productId,
-        quantity: quantity,
-      });
       const { error: insertError } = await supabase.from("cart_items").insert([
         {
           cart_id: cart.id,
@@ -269,14 +206,8 @@ export async function addToCart(productId, quantity = 1) {
       ]);
 
       if (insertError) {
-        console.error("❌ Insert error:", insertError);
-        console.error(
-          "Insert error details:",
-          JSON.stringify(insertError, null, 2),
-        );
         return { success: false, error: "Failed to add to cart" };
       }
-      console.log("✅ New item added to cart successfully");
     }
 
     revalidatePath("/cart");
@@ -287,23 +218,11 @@ export async function addToCart(productId, quantity = 1) {
       .select("id, quantity, product_id")
       .eq("cart_id", cart.id);
 
-    console.log("✅ Added to cart successfully!");
-    console.log("🔍 Verification - Current cart items:", {
-      count: verifyItems?.length || 0,
-      items:
-        verifyItems?.map((i) => ({
-          productId: i.product_id,
-          qty: i.quantity,
-        })) || [],
-    });
-
     return {
       success: true,
       message: "Added to cart",
     };
   } catch (error) {
-    console.error("💥 Cart error:", error);
-    console.error("Cart error details:", JSON.stringify(error, null, 2));
     return { success: false, error: "Failed to add to cart" };
   }
 }
@@ -314,7 +233,6 @@ export async function getCart() {
     const session = await auth();
 
     if (!session?.user) {
-      console.log("No user session, returning empty cart");
       return {
         id: null,
         items: [],
@@ -333,7 +251,6 @@ export async function getCart() {
     const userId = await getUserId();
 
     if (!userId) {
-      console.log("❌ No userId found in getCart");
       return {
         id: null,
         items: [],
@@ -348,8 +265,6 @@ export async function getCart() {
         itemCount: 0,
       };
     }
-
-    console.log("📥 Getting cart for userId:", userId);
 
     // Get active cart for user
     const { data: cart, error: cartError } = await supabase
@@ -376,8 +291,6 @@ export async function getCart() {
       .maybeSingle();
 
     if (cartError) {
-      console.error("❌ Error fetching cart:", cartError);
-      console.error("Cart error details:", JSON.stringify(cartError, null, 2));
       return {
         id: null,
         items: [],
@@ -394,19 +307,6 @@ export async function getCart() {
     }
 
     if (!cart) {
-      console.log(
-        "📦 No cart found for user. Checking for carts in database...",
-      );
-
-      // Debug: try to fetch ANY carts for this user
-      const { data: allCarts } = await supabase
-        .from("carts")
-        .select("id, is_active, user_id")
-        .eq("user_id", userId);
-
-      console.log("📋 All carts for user:", allCarts);
-
-      console.log("📦 Cart not found for user, returning empty cart");
       return {
         id: null,
         items: [],
@@ -422,11 +322,6 @@ export async function getCart() {
       };
     }
 
-    console.log("📦 Cart found:", {
-      cartId: cart.id,
-      itemsCount: cart.cart_items?.length || 0,
-    });
-
     // Format cart items
     const items = (cart.cart_items || []).map((item) => ({
       id: item.id,
@@ -434,15 +329,6 @@ export async function getCart() {
       quantity: item.quantity,
       subtotal: (item.products?.price || 0) * item.quantity,
     }));
-
-    console.log("📋 Formatted items:", {
-      count: items.length,
-      items: items.map((i) => ({
-        id: i.id,
-        productId: i.product?.id,
-        qty: i.quantity,
-      })),
-    });
 
     const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
     const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -468,7 +354,6 @@ export async function getCart() {
       itemCount,
     };
   } catch (error) {
-    console.error("💥 Error in getCart:", error);
     return {
       id: null,
       items: [],
@@ -511,14 +396,12 @@ export async function updateCartItem(itemId, quantity) {
       .eq("id", itemId);
 
     if (error) {
-      console.error("❌ Update error:", error);
       return { success: false, error: "Failed to update cart" };
     }
 
     revalidatePath("/cart");
     return { success: true, message: "Updated cart" };
   } catch (error) {
-    console.error("💥 Update error:", error);
     return { success: false, error: "Failed to update cart" };
   }
 }
@@ -542,14 +425,12 @@ export async function removeFromCart(itemId) {
       .eq("id", itemId);
 
     if (error) {
-      console.error("❌ Delete error:", error);
       return { success: false, error: "Failed to remove item" };
     }
 
     revalidatePath("/cart");
     return { success: true, message: "Removed from cart" };
   } catch (error) {
-    console.error("💥 Delete error:", error);
     return { success: false, error: "Failed to remove item" };
   }
 }
@@ -600,14 +481,12 @@ export async function clearCart() {
       .eq("cart_id", cart.id);
 
     if (error) {
-      console.error("❌ Clear error:", error);
       return { success: false, error: "Failed to clear cart" };
     }
 
     revalidatePath("/cart");
     return { success: true, message: "Cart cleared" };
   } catch (error) {
-    console.error("💥 Clear error:", error);
     return { success: false, error: "Failed to clear cart" };
   }
 }

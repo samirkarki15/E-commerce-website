@@ -46,7 +46,6 @@ export default function AdminUsersPage() {
         }
       }
     } catch (err) {
-      console.error("Error loading users:", err);
       setError("Failed to load users");
     } finally {
       setLoading(false);
@@ -66,7 +65,6 @@ export default function AdminUsersPage() {
         alert(`Failed to update role: ${result.error}`);
       }
     } catch (err) {
-      console.error("Error updating role:", err);
       alert("Error updating user role");
     } finally {
       setUpdating((prev) => ({ ...prev, [userId]: false }));
@@ -91,7 +89,6 @@ export default function AdminUsersPage() {
         alert(`Failed to delete user: ${result.error}`);
       }
     } catch (err) {
-      console.error("Error deleting user:", err);
       alert("Error deleting user");
     } finally {
       setDeleting((prev) => ({ ...prev, [userId]: false }));

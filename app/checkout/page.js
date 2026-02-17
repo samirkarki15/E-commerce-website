@@ -108,15 +108,11 @@ export default function CheckoutPage() {
 
   // Load cart on mount
   useEffect(() => {
-    console.log("Session status:", status);
-
     if (status === "loading") {
-      console.log("Waiting for session to load...");
       return;
     }
 
     if (status === "unauthenticated") {
-      console.log("User not authenticated, redirecting to cart");
       router.push("/cart");
       return;
     }
@@ -130,12 +126,7 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
       setError(null);
-      console.log("Loading cart for checkout...");
       const data = await getCart();
-      console.log("Cart data received:", {
-        items: data?.items?.length || 0,
-        total: data?.summary?.total,
-      });
 
       if (!data || !data.items) {
         setError("Could not load cart. Please try again.");
@@ -151,7 +142,6 @@ export default function CheckoutPage() {
 
       setCart(data);
     } catch (err) {
-      console.error("Error loading cart:", err);
       setError("Failed to load cart. Please try again.");
       setCart(null);
     } finally {
@@ -216,7 +206,6 @@ export default function CheckoutPage() {
         setError(result.error || "Order creation failed. Please try again.");
       }
     } catch (error) {
-      console.error("Checkout error:", error);
       setError("Checkout failed. Please try again.");
     } finally {
       setSubmitting(false);

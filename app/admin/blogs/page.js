@@ -44,7 +44,6 @@ export default function AdminBlogsPage() {
           return;
         }
       } catch (error) {
-        console.error("Error checking admin status:", error);
         router.push("/");
       }
     }
@@ -89,7 +88,6 @@ export default function AdminBlogsPage() {
       const result = await getBlogStats();
       setStats(result);
     } catch (error) {
-      console.error("Error loading stats:", error);
     }
   }
 

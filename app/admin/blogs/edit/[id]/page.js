@@ -63,7 +63,6 @@ export default function EditBlogPage() {
           await loadBlog();
         }
       } catch (error) {
-        console.error("Error:", error);
         router.push("/");
       }
     }
@@ -114,7 +113,6 @@ export default function EditBlogPage() {
         router.push("/admin/blogs");
       }
     } catch (error) {
-      console.error("Failed to load blog:", error);
       toast.error("Failed to load blog");
     } finally {
       setInitialLoading(false);
@@ -158,7 +156,6 @@ export default function EditBlogPage() {
       }
     } catch (error) {
       toast.error("Error uploading image");
-      console.error("Upload error:", error);
     } finally {
       setUploadingImage(false);
     }
@@ -213,7 +210,6 @@ export default function EditBlogPage() {
       toast.success("Image removed successfully!");
     } catch (error) {
       toast.error("Error removing image");
-      console.error("Remove error:", error);
     } finally {
       setDeletingImage(false);
     }
@@ -291,7 +287,6 @@ export default function EditBlogPage() {
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-      console.error("Error updating blog:", error);
     } finally {
       setLoading(false);
     }

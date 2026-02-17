@@ -20,30 +20,13 @@ export default function ReviewList({ productId }) {
     setError(null);
 
     try {
-      console.log(
-        "🔄 Fetching reviews for product:",
-        productId,
-        "page:",
-        pageNum,
-        "sort:",
-        sort,
-      );
-
       const result = await getProductReviews(productId, {
         page: pageNum,
         limit: limit,
         sortBy: sort,
       });
 
-      console.log(
-        "📊 Reviews fetched:",
-        result.reviews?.length,
-        "total:",
-        result.total,
-      );
-
       if (result.error) {
-        console.error("❌ Error:", result.error);
         setError(result.error);
       } else {
         setReviews(result.reviews || []);
@@ -51,7 +34,6 @@ export default function ReviewList({ productId }) {
         setTotalPages(result.totalPages || 1);
       }
     } catch (err) {
-      console.error("Error fetching reviews:", err);
       setError("Failed to load reviews");
     } finally {
       setIsLoading(false);
@@ -60,14 +42,12 @@ export default function ReviewList({ productId }) {
 
   // Fetch reviews when productId changes
   useEffect(() => {
-    console.log("📍 ProductId changed:", productId);
     setPage(1);
     fetchReviews(1, sortBy);
   }, [productId]);
 
   // Fetch reviews when sortBy changes
   useEffect(() => {
-    console.log("🔀 SortBy changed:", sortBy);
     setPage(1);
     fetchReviews(1, sortBy);
   }, [sortBy]);
@@ -82,7 +62,6 @@ export default function ReviewList({ productId }) {
   };
 
   const handleReviewUpdated = () => {
-    console.log("🔄 Review updated, refreshing list");
     fetchReviews(page, sortBy);
   };
 

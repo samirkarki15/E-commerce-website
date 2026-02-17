@@ -10,14 +10,7 @@ export async function isAdmin() {
     // Get session from NextAuth
     const session = await auth();
 
-    console.log("🔍 Admin check - Session:", {
-      hasSession: !!session,
-      userEmail: session?.user?.email,
-      userRole: session?.user?.role,
-    });
-
     if (!session?.user?.email) {
-      console.log("❌ No session or email found");
       return false;
     }
 
@@ -29,21 +22,17 @@ export async function isAdmin() {
       .single();
 
     if (error) {
-      console.error("❌ Database error:", error);
       return false;
     }
 
     if (!user) {
-      console.log("❌ User not found in database");
       return false;
     }
 
     const isAdminUser = user.role === "admin";
-    console.log("📊 User role:", user.role, "Is admin:", isAdminUser);
 
     return isAdminUser;
   } catch (error) {
-    console.error("💥 Error in isAdmin:", error);
     return false;
   }
 }
@@ -53,8 +42,6 @@ export async function getAdminProducts() {
   try {
     // Check if user is admin
     const admin = await isAdmin();
-
-    console.log("🔐 Admin check result:", admin);
 
     if (!admin) {
       throw new Error("Unauthorized: Admin access required");
@@ -66,13 +53,11 @@ export async function getAdminProducts() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Admin products error:", error);
       throw error;
     }
 
     return data || [];
   } catch (error) {
-    console.error("Error in getAdminProducts:", error);
     return [];
   }
 }
@@ -83,14 +68,11 @@ export async function getAdminDashboardStats() {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error(" Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log(" Fetching admin dashboard stats...");
 
     // Get product count
     const { count: productCount, error: productError } = await supabaseAdmin
@@ -98,7 +80,6 @@ export async function getAdminDashboardStats() {
       .select("id", { count: "exact", head: true });
 
     if (productError) {
-      console.error(" Error fetching product count:", productError);
     }
 
     // Get user count
@@ -107,7 +88,6 @@ export async function getAdminDashboardStats() {
       .select("id", { count: "exact", head: true });
 
     if (userError) {
-      console.error(" Error fetching user count:", userError);
     }
 
     // Get order count
@@ -116,7 +96,6 @@ export async function getAdminDashboardStats() {
       .select("id", { count: "exact", head: true });
 
     if (orderError) {
-      console.error(" Error fetching order count:", orderError);
     }
 
     // Get total revenue
@@ -132,13 +111,6 @@ export async function getAdminDashboardStats() {
       );
     }
 
-    console.log(" Stats fetched successfully:", {
-      products: productCount || 0,
-      users: userCount || 0,
-      orders: orderCount || 0,
-      revenue: totalRevenue,
-    });
-
     return {
       success: true,
       stats: {
@@ -149,7 +121,6 @@ export async function getAdminDashboardStats() {
       },
     };
   } catch (error) {
-    console.error(" Error in getAdminDashboardStats:", error);
     return {
       success: false,
       error: error.message,
@@ -165,15 +136,12 @@ export async function getAdminOrders(limit = 20, offset = 0) {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         orders: [],
         error: "Unauthorized",
       };
     }
-
-    console.log("📋 Fetching admin orders...");
 
     // Get orders without the embedded users relationship that's causing the error
     const {
@@ -206,7 +174,6 @@ export async function getAdminOrders(limit = 20, offset = 0) {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error("❌ Error fetching orders:", error);
       return {
         success: false,
         orders: [],
@@ -215,7 +182,6 @@ export async function getAdminOrders(limit = 20, offset = 0) {
     }
 
     if (!orders || orders.length === 0) {
-      console.log("📋 No orders found");
       return {
         success: true,
         orders: [],
@@ -266,18 +232,12 @@ export async function getAdminOrders(limit = 20, offset = 0) {
       };
     });
 
-    console.log("✅ Orders fetched successfully:", {
-      count: transformedOrders.length,
-      total: count,
-    });
-
     return {
       success: true,
       orders: transformedOrders,
       totalCount: count || 0,
     };
   } catch (error) {
-    console.error("💥 Error in getAdminOrders:", error);
     return {
       success: false,
       orders: [],
@@ -293,14 +253,11 @@ export async function getAdminOrderDetail(orderId) {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log("📋 Fetching order details for:", orderId);
 
     // Get order without embedded users to avoid relationship conflict
     const { data: order, error } = await supabaseAdmin
@@ -324,7 +281,6 @@ export async function getAdminOrderDetail(orderId) {
       .single();
 
     if (error) {
-      console.error("❌ Error fetching order:", error);
       return {
         success: false,
         error: error.message || "Order not found",
@@ -396,14 +352,11 @@ export async function getAdminOrderDetail(orderId) {
       itemCount: transformedItems.length,
     };
 
-    console.log("✅ Order details fetched successfully");
-
     return {
       success: true,
       order: transformedOrder,
     };
   } catch (error) {
-    console.error("💥 Error in getAdminOrderDetail:", error);
     return {
       success: false,
       error: error.message,
@@ -421,16 +374,11 @@ export async function updateAdminOrderStatus(
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error(" Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log(
-      ` Updating order ${orderId} status to ${status}, paymentStatus: ${paymentStatus}...`,
-    );
 
     const updateData = {};
     if (status) {
@@ -440,31 +388,23 @@ export async function updateAdminOrderStatus(
       updateData.payment_status = paymentStatus;
     }
 
-    console.log(" Update data being sent:", updateData);
-
     const { error, data } = await supabaseAdmin
       .from("orders")
       .update(updateData)
       .eq("id", orderId);
 
     if (error) {
-      console.error(" Error updating order:", error);
-      console.error(" Error details:", error.message, error.code);
       return {
         success: false,
         error: `Database error: ${error.message}`,
       };
     }
 
-    console.log(" Order updated successfully", data);
-
     return {
       success: true,
       message: "Order status updated",
     };
   } catch (error) {
-    console.error(" Error in updateAdminOrderStatus:", error);
-    console.error(" Stack:", error.stack);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
@@ -479,14 +419,11 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log(`📦 Admin cancelling order: ${orderId}`);
 
     // Get the order first to check if it can be cancelled
     const { data: order, error: orderError } = await supabaseAdmin
@@ -496,7 +433,6 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
       .single();
 
     if (orderError || !order) {
-      console.error("❌ Order not found:", orderError);
       return {
         success: false,
         error: "Order not found",
@@ -539,7 +475,6 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
       .eq("id", orderId);
 
     if (updateError) {
-      console.error("❌ Order cancellation error:", updateError);
       return {
         success: false,
         error: updateError.message || "Failed to cancel order",
@@ -580,9 +515,6 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
 
           if (!stockError) {
             updates.push(`Restored stock for product ${item.product_id}`);
-            console.log(
-              `✅ Restored stock for product ${item.product_id}: ${currentStock} → ${newQuantity}`,
-            );
           }
         }
       }
@@ -593,17 +525,11 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
       try {
         // Here you would integrate with your email service
         // For example, using Resend, SendGrid, etc.
-        console.log(
-          `📧 Would send cancellation email to: ${order.users.email}`,
-        );
         updates.push(`Cancellation email queued for ${order.users.email}`);
       } catch (emailError) {
-        console.error("❌ Error queueing email:", emailError);
         // Don't fail the whole operation if email fails
       }
     }
-
-    console.log("✅ Admin order cancellation completed:", orderId);
 
     // Revalidate paths if needed (for Next.js caching)
     // Note: This would need to be adapted based on your setup
@@ -620,7 +546,6 @@ export async function adminCancelOrder(orderId, reason, sendEmail = false) {
       },
     };
   } catch (error) {
-    console.error("💥 Admin cancel order error:", error);
     return {
       success: false,
       error: error?.message || "An unexpected error occurred",
@@ -639,14 +564,11 @@ export async function adminRefundOrder(
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log(`💰 Admin processing refund for order: ${orderId}`);
 
     // Get the order
     const { data: order, error: orderError } = await supabaseAdmin
@@ -656,7 +578,6 @@ export async function adminRefundOrder(
       .single();
 
     if (orderError || !order) {
-      console.error("❌ Order not found:", orderError);
       return {
         success: false,
         error: "Order not found",
@@ -691,7 +612,6 @@ export async function adminRefundOrder(
       .eq("id", orderId);
 
     if (updateError) {
-      console.error("❌ Order refund error:", updateError);
       return {
         success: false,
         error: updateError.message || "Failed to process refund",
@@ -721,8 +641,6 @@ export async function adminRefundOrder(
       }
     }
 
-    console.log("✅ Admin refund processed:", orderId);
-
     return {
       success: true,
       message: `Refund of रु ${amountToRefund} processed successfully`,
@@ -735,7 +653,6 @@ export async function adminRefundOrder(
       },
     };
   } catch (error) {
-    console.error("💥 Admin refund error:", error);
     return {
       success: false,
       error: error?.message || "An unexpected error occurred",
@@ -750,15 +667,12 @@ export async function getAllUsers(limit = 50, offset = 0, search = "") {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         users: [],
         error: "Unauthorized",
       };
     }
-
-    console.log("📋 Fetching all users...");
 
     let query = supabaseAdmin
       .from("users")
@@ -779,7 +693,6 @@ export async function getAllUsers(limit = 50, offset = 0, search = "") {
     } = await query.range(offset, offset + limit - 1);
 
     if (error) {
-      console.error("❌ Error fetching users:", error);
       return {
         success: false,
         users: [],
@@ -787,18 +700,12 @@ export async function getAllUsers(limit = 50, offset = 0, search = "") {
       };
     }
 
-    console.log("✅ Users fetched successfully:", {
-      count: users?.length || 0,
-      total: count,
-    });
-
     return {
       success: true,
       users: users || [],
       totalCount: count || 0,
     };
   } catch (error) {
-    console.error("💥 Error in getAllUsers:", error);
     return {
       success: false,
       users: [],
@@ -814,7 +721,6 @@ export async function updateUserRole(userId, newRole) {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
@@ -830,8 +736,6 @@ export async function updateUserRole(userId, newRole) {
       };
     }
 
-    console.log(`🔄 Updating user ${userId} role to ${newRole}`);
-
     const { error } = await supabaseAdmin
       .from("users")
       .update({
@@ -841,21 +745,17 @@ export async function updateUserRole(userId, newRole) {
       .eq("id", userId);
 
     if (error) {
-      console.error("❌ Error updating user role:", error);
       return {
         success: false,
         error: error.message,
       };
     }
 
-    console.log("✅ User role updated successfully");
-
     return {
       success: true,
       message: `User role updated to ${newRole}`,
     };
   } catch (error) {
-    console.error("💥 Error in updateUserRole:", error);
     return {
       success: false,
       error: error.message,
@@ -870,14 +770,11 @@ export async function deleteUser(userId) {
     const admin = await isAdmin();
 
     if (!admin) {
-      console.error("❌ Unauthorized: Admin access required");
       return {
         success: false,
         error: "Unauthorized",
       };
     }
-
-    console.log(`🗑️ Deleting user: ${userId}`);
 
     // First, check if user has any orders
     const { count: orderCount } = await supabaseAdmin
@@ -899,21 +796,17 @@ export async function deleteUser(userId) {
       .eq("id", userId);
 
     if (error) {
-      console.error("❌ Error deleting user:", error);
       return {
         success: false,
         error: error.message,
       };
     }
 
-    console.log("✅ User deleted successfully");
-
     return {
       success: true,
       message: "User deleted successfully",
     };
   } catch (error) {
-    console.error("💥 Error in deleteUser:", error);
     return {
       success: false,
       error: error.message,

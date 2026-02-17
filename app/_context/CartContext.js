@@ -27,13 +27,8 @@ export function CartProvider({ children }) {
     setIsLoading(true);
     try {
       const cartData = await getCart();
-      console.log("🔄 CartContext refreshed:", {
-        itemCount: cartData?.summary?.itemCount,
-        total: cartData?.summary?.total,
-      });
       setCart(cartData);
     } catch (error) {
-      console.error("Cart refresh error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -42,7 +37,6 @@ export function CartProvider({ children }) {
   // Listen for cart refresh events from other components
   useEffect(() => {
     const handleCartRefresh = () => {
-      console.log("📢 cart-refresh event received");
       setRefreshTrigger((prev) => prev + 1);
     };
 
@@ -61,7 +55,6 @@ export function CartProvider({ children }) {
   // Refresh when trigger changes
   useEffect(() => {
     if (refreshTrigger > 0) {
-      console.log("🔄 Refreshing cart due to trigger:", refreshTrigger);
       refreshCartData();
     }
   }, [refreshTrigger, refreshCartData]);

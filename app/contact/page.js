@@ -345,7 +345,7 @@ export default function ContactPage() {
             We value every message and strive to provide the best customer
             service experience.
           </p>
-          <p className="mt-2">Thank you for choosing SmartGadget!</p>
+          <p className="mt-2">Thank you for choosing SmartXstore!</p>
         </div>
       </div>
     </div>

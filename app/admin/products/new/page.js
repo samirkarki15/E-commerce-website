@@ -89,8 +89,6 @@ export default function NewProductPage() {
         formData.append(`image_${index}`, file);
       });
 
-      console.log("Submitting product with images...");
-
       const result = await createProductWithImages(formData);
 
       if (result.error) {
@@ -103,7 +101,6 @@ export default function NewProductPage() {
       router.push("/admin/products");
       router.refresh();
     } catch (err) {
-      console.error("Error:", err);
       setError(err.message || "Failed to create product");
     } finally {
       setLoading(false);

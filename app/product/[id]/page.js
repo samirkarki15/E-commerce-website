@@ -51,9 +51,7 @@ export default function ProductDetailPage() {
     try {
       // Get review statistics
       const statsResult = await getReviewStatistics(product.id);
-      if (statsResult.error) {
-        console.error("Error fetching review stats:", statsResult.error);
-      } else {
+      if (!statsResult.error) {
         setReviewStats({
           averageRating: statsResult.averageRating,
           totalReviews: statsResult.totalReviews,
@@ -61,7 +59,6 @@ export default function ProductDetailPage() {
         });
       }
     } catch (error) {
-      console.error("Error fetching review data:", error);
     } finally {
       setReviewDataLoaded(true);
     }
@@ -74,7 +71,6 @@ export default function ProductDetailPage() {
       setReviewDataLoaded(false);
 
       try {
-        console.log("📍 Fetching product with ID:", productId);
 
         const { product: productData, error: productError } =
           await getProductDetail(productId);
@@ -89,9 +85,7 @@ export default function ProductDetailPage() {
         // ✅ FIX: Fetch review data using productData directly, not product state
         try {
           const statsResult = await getReviewStatistics(productData.id);
-          if (statsResult.error) {
-            console.error("Error fetching review stats:", statsResult.error);
-          } else {
+          if (!statsResult.error) {
             setReviewStats({
               averageRating: statsResult.averageRating,
               totalReviews: statsResult.totalReviews,
@@ -99,7 +93,6 @@ export default function ProductDetailPage() {
             });
           }
         } catch (error) {
-          console.error("Error fetching review data:", error);
         } finally {
           setReviewDataLoaded(true);
         }
@@ -114,7 +107,6 @@ export default function ProductDetailPage() {
           setRelatedProducts(related);
         }
       } catch (err) {
-        console.error("Error fetching product:", err);
         setError("Failed to load product details");
       } finally {
         setIsLoading(false);
@@ -196,7 +188,6 @@ export default function ProductDetailPage() {
         });
         toast.success("Shared successfully!");
       } catch (error) {
-        console.log("Sharing cancelled:", error);
       }
     } else {
       // Fallback: Copy to clipboard

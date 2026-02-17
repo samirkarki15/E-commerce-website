@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useCart } from "@/app/_context/CartContext";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const Navigation = () => {
   const [isScroll, setIsScroll] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const progressTimerRef = useRef(null);
+  const finishTimerRef = useRef(null);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { cart, itemCount, isLoading: cartLoading, refreshCart } = useCart();
 
@@ -40,6 +47,46 @@ const Navigation = () => {
     closeMenu();
   };
 
+  const clearProgressTimers = () => {
+    if (progressTimerRef.current) {
+      clearInterval(progressTimerRef.current);
+      progressTimerRef.current = null;
+    }
+    if (finishTimerRef.current) {
+      clearTimeout(finishTimerRef.current);
+      finishTimerRef.current = null;
+    }
+  };
+
+  const startProgress = (href) => {
+    if (!href || href === pathname || isNavigating) {
+      return;
+    }
+
+    clearProgressTimers();
+    setIsNavigating(true);
+    setProgress(18);
+
+    progressTimerRef.current = setInterval(() => {
+      setProgress((prev) => (prev < 85 ? prev + Math.random() * 9 : prev));
+    }, 180);
+  };
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/shop", label: "Shop" },
+    { href: "/about", label: "About" },
+    { href: "/blog", label: "Blog" },
+    { href: "/contact", label: "Contact" },
+  ];
+
+  const getDesktopNavClass = (href) =>
+    `font-medium px-4 py-2 rounded-full transition-colors duration-200 ${
+      pathname === href
+        ? "text-blue-700 bg-blue-50"
+        : "text-gray-700 hover:text-blue-600 hover:bg-white"
+    }`;
+
   // Add cart refresh on auth change
   useEffect(() => {
     if (status === "authenticated") {
@@ -47,18 +94,51 @@ const Navigation = () => {
     }
   }, [status, refreshCart]);
 
+  // Complete progress when route transition actually finishes
+  useEffect(() => {
+    if (!isNavigating) return;
+
+    clearProgressTimers();
+    finishTimerRef.current = setTimeout(() => {
+      setProgress(100);
+
+      finishTimerRef.current = setTimeout(() => {
+        setIsNavigating(false);
+        setProgress(0);
+        finishTimerRef.current = null;
+      }, 220);
+    }, 10);
+  }, [pathname, searchParams, isNavigating]);
+
+  useEffect(() => {
+    return () => clearProgressTimers();
+  }, []);
+
   return (
     <>
+      <div className="fixed top-0 left-0 right-0 z-[60] h-1 pointer-events-none">
+        <div
+          className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 transition-[width,opacity] duration-300 ease-out shadow-[0_0_12px_rgba(37,99,235,0.55)]"
+          style={{
+            width: `${progress}%`,
+            opacity: isNavigating ? 1 : 0,
+          }}
+        />
+      </div>
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScroll
-            ? "bg-white/95 backdrop-blur-md shadow-lg py-3"
-            : "bg-white py-4"
+            ? "bg-white/95 backdrop-blur-md shadow-md py-2.5 border-b border-gray-200"
+            : "bg-white py-3.5 border-b border-gray-200"
         }`}
       >
-        <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-3">
           {/* Logo - Always left aligned */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link
+            href="/"
+            className="flex items-center space-x-2"
+            onClick={() => startProgress("/")}
+          >
             <span className="text-2xl font-bold hidden sm:flex items-center gap-1">
               <span className="text-gray-900">Smart</span>
               <span className="bg-[#1E40AF] text-white px-2 py-0.5 rounded-md">
@@ -77,57 +157,27 @@ const Navigation = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <ul
-            className={`hidden md:flex items-center space-x-1 bg-gray-50 rounded-full px-6 py-2`}
-          >
-            <li>
-              <Link
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-white px-4 py-2 rounded-full transition-colors duration-200"
-                href="/"
-              >
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-white px-4 py-2 rounded-full transition-colors duration-200"
-                href="/shop"
-              >
-                Shop
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-white px-4 py-2 rounded-full transition-colors duration-200"
-                href="/about"
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-white px-4 py-2 rounded-full transition-colors duration-200"
-                href="/blog"
-              >
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="font-medium text-gray-700 hover:text-blue-600 hover:bg-white px-4 py-2 rounded-full transition-colors duration-200"
-                href="/contact"
-              >
-                Contact
-              </Link>
-            </li>
+          <ul className="hidden md:flex items-center gap-1 bg-gray-50/90 rounded-full px-2.5 py-1.5 border border-gray-200">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  className={getDesktopNavClass(link.href)}
+                  href={link.href}
+                  onClick={() => startProgress(link.href)}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
           </ul>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* My Orders Link */}
             <Link
               href="/orders"
-              className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors"
+              className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors px-2 py-1 rounded-lg hover:bg-gray-50"
+              onClick={() => startProgress("/orders")}
             >
               <span className="text-lg">📦</span>
               <span className="hidden lg:inline">My Orders</span>
@@ -136,7 +186,8 @@ const Navigation = () => {
             {/* Cart Button */}
             <Link
               href="/cart"
-              className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors relative"
+              className="hidden md:flex items-center space-x-1 text-gray-700 hover:text-blue-600 transition-colors relative px-2 py-1 rounded-lg hover:bg-gray-50"
+              onClick={() => startProgress("/cart")}
             >
               <span className="text-lg">🛒</span>
               {!cartLoading && itemCount > 0 && (
@@ -162,6 +213,7 @@ const Navigation = () => {
                   <Link
                     href="/account"
                     className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
+                    onClick={() => startProgress("/account")}
                   >
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       {session?.user?.image ? (
@@ -193,6 +245,7 @@ const Navigation = () => {
                     <Link
                       href="/admin"
                       className="bg-gray-800 hover:bg-gray-900 text-white font-medium px-4 py-2 rounded-full transition-colors duration-200 text-sm"
+                      onClick={() => startProgress("/admin")}
                     >
                       Dashboard
                     </Link>
@@ -201,7 +254,7 @@ const Navigation = () => {
               ) : (
                 <button
                   onClick={handleSignIn}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-full transition-colors duration-200"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-full transition-colors duration-200"
                 >
                   Sign In
                 </button>
@@ -236,7 +289,10 @@ const Navigation = () => {
             <Link
               href="/"
               className="flex items-center space-x-2"
-              onClick={closeMenu}
+              onClick={() => {
+                startProgress("/");
+                closeMenu();
+              }}
             >
               <span className="text-2xl font-bold flex items-center gap-1">
                 <span className="text-gray-900">Smart</span>
@@ -316,7 +372,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">🏠</span>
                 <span className="font-medium">Home</span>
@@ -325,7 +384,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/shop"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/shop");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">🛍️</span>
                 <span className="font-medium">Shop</span>
@@ -334,7 +396,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/about"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/about");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">ℹ️</span>
                 <span className="font-medium">About Us</span>
@@ -343,7 +408,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/blog"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/blog");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">📝</span>
                 <span className="font-medium">Blog</span>
@@ -352,7 +420,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/contact"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/contact");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">📞</span>
                 <span className="font-medium">Contact</span>
@@ -365,7 +436,10 @@ const Navigation = () => {
                 <Link
                   className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   href="/account"
-                  onClick={closeMenu}
+                  onClick={() => {
+                    startProgress("/account");
+                    closeMenu();
+                  }}
                 >
                   <span className="text-lg">👤</span>
                   <span className="font-medium">My Account</span>
@@ -375,7 +449,10 @@ const Navigation = () => {
                   <Link
                     className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                     href="/admin"
-                    onClick={closeMenu}
+                    onClick={() => {
+                      startProgress("/admin");
+                      closeMenu();
+                    }}
                   >
                     <span className="text-lg">📊</span>
                     <span className="font-medium">Admin Dashboard</span>
@@ -385,7 +462,10 @@ const Navigation = () => {
                 <Link
                   className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   href="/orders"
-                  onClick={closeMenu}
+                  onClick={() => {
+                    startProgress("/orders");
+                    closeMenu();
+                  }}
                 >
                   <span className="text-lg">📦</span>
                   <span className="font-medium">My Orders</span>
@@ -400,7 +480,10 @@ const Navigation = () => {
               <Link
                 className="flex items-center space-x-3 p-4 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                 href="/cart"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/cart");
+                  closeMenu();
+                }}
               >
                 <span className="text-lg">🛒</span>
                 <span className="font-medium">Cart</span>
@@ -440,7 +523,10 @@ const Navigation = () => {
               <Link
                 href="/contact"
                 className="text-blue-600 hover:underline"
-                onClick={closeMenu}
+                onClick={() => {
+                  startProgress("/contact");
+                  closeMenu();
+                }}
               >
                 Contact Support
               </Link>
@@ -454,8 +540,8 @@ const Navigation = () => {
         <div className="fixed inset-0 bg-black/50 z-40" onClick={closeMenu} />
       )}
 
-      {/* Add padding to prevent content from hiding behind fixed nav */}
-      <div className="h-20"></div>
+      {/* Spacer below fixed nav */}
+      <div className="h-16 sm:h-20"></div>
     </>
   );
 };

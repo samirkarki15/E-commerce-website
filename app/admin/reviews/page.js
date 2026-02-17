@@ -47,7 +47,6 @@ export default function AdminReviewsPage() {
   async function loadReviews() {
     try {
       setLoading(true);
-      console.log("Loading reviews for admin...");
 
       const result = await getAllReviewsForAdmin({
         productId: productId || null,
@@ -55,8 +54,6 @@ export default function AdminReviewsPage() {
         limit,
         search: searchTerm,
       });
-
-      console.log("Reviews loaded:", result.reviews?.length || 0);
 
       if (result.error) {
         toast.error(result.error);
@@ -66,7 +63,6 @@ export default function AdminReviewsPage() {
         setTotalPages(result.totalPages || 1);
       }
     } catch (error) {
-      console.error("Error loading reviews:", error);
       toast.error("Failed to load reviews");
     } finally {
       setLoading(false);
@@ -75,17 +71,12 @@ export default function AdminReviewsPage() {
 
   async function loadStats() {
     try {
-      console.log("Loading review stats...");
       const result = await getAdminReviewStats();
 
-      if (result.error) {
-        console.error("Error loading stats:", result.error);
-      } else {
+      if (!result.error) {
         setStats(result);
-        console.log("Stats loaded:", result);
       }
     } catch (error) {
-      console.error("Error loading stats:", error);
     }
   }
 
@@ -114,7 +105,6 @@ export default function AdminReviewsPage() {
         toast.error(result.error || "Failed to delete review");
       }
     } catch (error) {
-      console.error("Error deleting review:", error);
       toast.error("Error deleting review");
     }
   }

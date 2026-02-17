@@ -30,7 +30,6 @@ export default function NewBlogPage() {
           return;
         }
       } catch (error) {
-        console.error("Error checking admin status:", error);
         router.push("/");
       }
     }
@@ -97,7 +96,6 @@ export default function NewBlogPage() {
       }
     } catch (error) {
       toast.error("Error uploading image");
-      console.error("Upload error:", error);
     } finally {
       setUploadingImage(false);
     }
@@ -195,7 +193,6 @@ export default function NewBlogPage() {
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
-      console.error("Error creating blog:", error);
     } finally {
       setLoading(false);
     }

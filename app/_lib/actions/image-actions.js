@@ -32,8 +32,6 @@ export async function uploadProductImage(
     // Path: productId/filename.png (inside product-images bucket)
     const filePath = `${productId}/${fileName}`;
 
-    console.log("📤 Uploading to product-images bucket:", filePath);
-
     // Convert File to ArrayBuffer
     const arrayBuffer = await imageFile.arrayBuffer();
 
@@ -47,7 +45,6 @@ export async function uploadProductImage(
       });
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
       return {
         success: false,
         error: `Upload failed: ${uploadError.message}`,
@@ -58,9 +55,6 @@ export async function uploadProductImage(
     const {
       data: { publicUrl },
     } = supabase.storage.from("product-images").getPublicUrl(filePath);
-
-    console.log("✅ Image uploaded!");
-    console.log("URL:", publicUrl);
 
     return {
       success: true,
@@ -75,7 +69,6 @@ export async function uploadProductImage(
       },
     };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       error: `Unexpected error: ${error.message}`,
@@ -97,17 +90,14 @@ export async function deleteProductImage(filePath) {
       .remove([filePath]);
 
     if (error) {
-      console.error("Delete error:", error);
       return {
         success: false,
         error: error.message,
       };
     }
 
-    console.log("✅ Image deleted:", filePath);
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       error: error.message,
@@ -130,7 +120,6 @@ export async function deleteProductImages(filePaths) {
       .remove(filePaths);
 
     if (error) {
-      console.error("Delete error:", error);
       return {
         success: false,
         deleted: 0,
@@ -138,13 +127,11 @@ export async function deleteProductImages(filePaths) {
       };
     }
 
-    console.log(`✅ ${filePaths.length} images deleted`);
     return {
       success: true,
       deleted: filePaths.length,
     };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       deleted: 0,

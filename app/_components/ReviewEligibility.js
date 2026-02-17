@@ -20,7 +20,6 @@ export default function ReviewEligibility({ productId, onReviewSubmitted }) {
           setCanReview(result.canReview);
           setReason(result.reason);
         } catch (error) {
-          console.error("Error checking review eligibility:", error);
           setCanReview(false);
           setReason("error");
         } finally {

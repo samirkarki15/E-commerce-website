@@ -24,16 +24,9 @@ export default function CartPage() {
     try {
       setLoading(true);
       setError(null);
-      console.log("📥 Loading cart... Auth status:", status);
       const data = await getCart();
-      console.log("📦 Cart data received:", {
-        itemsCount: data?.items?.length,
-        requiresLogin: data?.requiresLogin,
-        summary: data?.summary,
-      });
       setCart(data);
     } catch (err) {
-      console.error("❌ Error loading cart:", err);
       setError("Failed to load cart");
     } finally {
       setLoading(false);

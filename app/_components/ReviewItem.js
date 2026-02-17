@@ -34,7 +34,6 @@ export default function ReviewItem({ review, onReviewUpdated }) {
         toast.error(result.error || "Failed to delete review");
       }
     } catch (error) {
-      console.error("Error deleting review:", error);
       toast.error("Failed to delete review");
     } finally {
       setIsDeleting(false);

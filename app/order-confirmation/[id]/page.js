@@ -39,10 +39,7 @@ export default function OrderConfirmationPage() {
     try {
       setLoading(true);
       setError(null);
-      console.log("📦 Loading order number:", orderNumber);
-
       const result = await getOrderByNumber(orderNumber);
-      console.log("📦 Order result:", result);
 
       if (result.success) {
         setOrder(result.order);
@@ -50,7 +47,6 @@ export default function OrderConfirmationPage() {
         setError(result.error || "Order not found");
       }
     } catch (err) {
-      console.error("❌ Error loading order:", err);
       setError("Failed to load order details");
     } finally {
       setLoading(false);
@@ -77,7 +73,6 @@ export default function OrderConfirmationPage() {
         alert(result.error || "Failed to cancel order");
       }
     } catch (err) {
-      console.error("❌ Error cancelling order:", err);
       alert("Failed to cancel order");
     } finally {
       setCancelling(false);

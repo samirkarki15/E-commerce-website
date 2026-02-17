@@ -34,11 +34,11 @@ export default function AboutPage() {
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
               About{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300">
-                Smartxstore
+                SmartXstore
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto">
-              Nepal's premier destination for cutting-edge technology and
+              Nepal&apos;s premier destination for cutting-edge technology and
               innovative gadgets.
             </p>
             <p className="text-lg text-blue-200 max-w-2xl mx-auto">
@@ -63,9 +63,9 @@ export default function AboutPage() {
                 in Nepal deserved access to the latest technology.
               </p>
               <p>
-                What started as a modest store on New Road has now grown into
-                one of Kathmandu's most trusted names in electronics and
-                gadgets. Our journey has been fueled by our commitment to
+                What started as a modest store on Sinamangal Road has now grown
+                into one of Kathmandu&apos;s most trusted names in electronics
+                and gadgets. Our journey has been fueled by our commitment to
                 bringing innovative products to the Nepali market.
               </p>
               <p>
@@ -91,7 +91,8 @@ export default function AboutPage() {
               What Makes Us Different
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're more than just a store - we're your tech partners in Nepal
+              We&apos;re more than just a store - we&apos;re your tech partners
+              in Nepal
             </p>
           </div>
 
@@ -149,46 +150,27 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <span className="text-white text-2xl font-bold">SR</span>
               </div>
               <h4 className="font-bold text-gray-900">Saroj Regmi</h4>
               <p className="text-sm text-gray-600">Founder & CEO</p>
-              <p className="text-xs text-gray-500 mt-1">
-                15+ years in tech industry
-              </p>
             </div>
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">AP</span>
+                <span className="text-white text-2xl font-bold">SP</span>
               </div>
-              <h4 className="font-bold text-gray-900">Anita Pokharel</h4>
+              <h4 className="font-bold text-gray-900">Samir Karki</h4>
               <p className="text-sm text-gray-600">Tech Specialist</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Gadget expert & reviewer
-              </p>
             </div>
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">RP</span>
+                <span className="text-white text-2xl font-bold">PS</span>
               </div>
-              <h4 className="font-bold text-gray-900">Ramesh Paudel</h4>
+              <h4 className="font-bold text-gray-900">Purushottam Subedi</h4>
               <p className="text-sm text-gray-600">Sales Manager</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Customer satisfaction focus
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">SK</span>
-              </div>
-              <h4 className="font-bold text-gray-900">Sita Karki</h4>
-              <p className="text-sm text-gray-600">Support Lead</p>
-              <p className="text-xs text-gray-500 mt-1">
-                After-sales service expert
-              </p>
             </div>
           </div>
         </div>
@@ -204,14 +186,14 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4">
                 <FaTruck className="text-blue-600" />
               </div>
               <h4 className="font-bold text-gray-900 mb-2">Free Delivery</h4>
               <p className="text-sm text-gray-600">
-                Free shipping within Kathmandu Valley on orders above रु 100
+                Free shipping within Kathmandu Valley on orders above रु 500
               </p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6">
@@ -221,15 +203,6 @@ export default function AboutPage() {
               <h4 className="font-bold text-gray-900 mb-2">Expert Support</h4>
               <p className="text-sm text-gray-600">
                 Technical assistance and product guidance from our experts
-              </p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6">
-              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4">
-                <span className="text-green-600 font-bold text-xl">7</span>
-              </div>
-              <h4 className="font-bold text-gray-900 mb-2">Easy Returns</h4>
-              <p className="text-sm text-gray-600">
-                7-day return policy for defective products
               </p>
             </div>
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6">
@@ -254,7 +227,7 @@ export default function AboutPage() {
               <div>
                 <h4 className="font-bold text-gray-900 mb-2">Address</h4>
                 <p className="text-gray-600">SmartXstore Flagship Store</p>
-                <p className="text-gray-600">New Road, Kathmandu 44600</p>
+                <p className="text-gray-600">Sinamangal Road, Kathmandu</p>
                 <p className="text-gray-600">Nepal</p>
               </div>
               <div>
@@ -273,15 +246,6 @@ export default function AboutPage() {
                     <span className="font-medium">11:00 AM - 5:00 PM</span>
                   </p>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-bold text-gray-900 mb-2">
-                  Parking & Accessibility
-                </h4>
-                <p className="text-gray-600">
-                  Ample parking available at the rear of the building.
-                  Wheelchair accessible entrance with ramp access.
-                </p>
               </div>
             </div>
           </div>
@@ -329,9 +293,10 @@ export default function AboutPage() {
             <div>
               <h3 className="text-3xl font-bold mb-6">Our Vision</h3>
               <p className="text-blue-100 text-lg">
-                To become Nepal's most trusted and innovative tech retailer,
-                recognized for our product expertise, customer-first approach,
-                and contribution to digital empowerment across the country.
+                To become Nepal&apos;s most trusted and innovative tech
+                retailer, recognized for our product expertise, customer-first
+                approach, and contribution to digital empowerment across the
+                country.
               </p>
             </div>
           </div>

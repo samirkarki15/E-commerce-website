@@ -35,7 +35,6 @@ export default function ProductGrid({
   };
 
   const handleImageError = (productId, imageUrl) => {
-    console.error(`❌ Image failed for product ${productId}:`, imageUrl);
     setImageErrors((prev) => ({
       ...prev,
       [productId]: true,
@@ -79,7 +78,7 @@ export default function ProductGrid({
   return (
     <div>
       {/* Responsive grid: 2 columns on mobile, 2 on small tablets, 3 on desktop, 4 on large desktop */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         {products.map((product) => {
           const imageUrl = getProductImageUrl(product);
           const hasImageError = imageErrors[product.id];
@@ -111,7 +110,7 @@ export default function ProductGrid({
               onMouseEnter={() => setHoveredProduct(product.id)}
               onMouseLeave={() => setHoveredProduct(null)}
             >
-              <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden h-full flex flex-col border border-gray-100 hover:border-blue-200">
+              <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 overflow-hidden h-full flex flex-col border border-gray-100 hover:border-blue-200">
                 <div className="aspect-square bg-gray-100 relative overflow-hidden">
                   {imageUrl && !hasImageError ? (
                     <div className="relative w-full h-full">
@@ -149,22 +148,22 @@ export default function ProductGrid({
 
                   {/* Discount Badge - More prominent */}
                   {discount > 0 && (
-                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-                      <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+                    <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10">
+                      <span className="bg-gradient-to-r from-red-600 to-red-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-md">
                         -{discount}%
                       </span>
                     </div>
                   )}
 
                   {/* New/Hot Badges */}
-                  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col gap-1 z-10">
+                  <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 flex flex-col gap-0.5 z-10">
                     {product.is_new && (
-                      <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+                      <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-md">
                         NEW
                       </span>
                     )}
                     {product.is_hot && (
-                      <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg">
+                      <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full shadow-md">
                         🔥 HOT
                       </span>
                     )}
@@ -180,71 +179,71 @@ export default function ProductGrid({
 
                   {/* Quick view indicator - appears on hover */}
                   <div
-                    className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent pt-8 pb-3 px-3 transition-opacity duration-300 ${
+                    className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent pt-6 pb-2 px-2 transition-opacity duration-300 ${
                       isHovered ? "opacity-100" : "opacity-0"
                     }`}
                   >
-                    <span className="text-white text-xs sm:text-sm font-medium flex items-center justify-center gap-1">
+                    <span className="text-white text-[10px] sm:text-xs font-medium flex items-center justify-center gap-1">
                       <span>👁️</span> View Details
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 flex-grow flex flex-col bg-white">
+                <div className="p-2.5 sm:p-3 flex-grow flex flex-col bg-white">
                   {/* Brand - More elegant */}
-                  <div className="mb-1.5">
-                    <span className="inline-block text-[10px] sm:text-xs font-mono uppercase tracking-wider text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
+                  <div className="mb-1">
+                    <span className="inline-block text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded-full">
                       {product.brand || "Generic"}
                     </span>
                   </div>
 
                   {/* Product Name - Clean and readable */}
-                  <h3 className="font-medium text-gray-900 text-sm sm:text-base md:text-lg leading-tight line-clamp-2 mb-1.5 group-hover:text-blue-600 transition-colors">
+                  <h3 className="font-medium text-gray-900 text-xs sm:text-sm md:text-base leading-tight line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
                     {product.name}
                   </h3>
 
                   {/* Description - Light, elegant font */}
-                  <p className="text-gray-500 text-[11px] sm:text-xs leading-relaxed line-clamp-2 mb-2 sm:mb-3 font-light hidden sm:block">
+                  <p className="text-gray-500 text-[10px] sm:text-[11px] leading-relaxed line-clamp-2 mb-1.5 sm:mb-2 font-light hidden sm:block">
                     {product.short_description ||
                       (product.description
-                        ? product.description.substring(0, 60) + "..."
+                        ? product.description.substring(0, 50) + "..."
                         : "No description available")}
                   </p>
 
                   {/* Rating and Sold Count */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-1">
                       <div className="flex">{renderStars(rating)}</div>
-                      <span className="text-[10px] sm:text-xs text-gray-600">
+                      <span className="text-[9px] sm:text-[10px] text-gray-600">
                         ({reviewCount})
                       </span>
                     </div>
                     {soldCount > 0 && (
-                      <span className="text-[10px] sm:text-xs text-orange-600 font-medium">
-                        🔥 {soldCount} sold
+                      <span className="text-[9px] sm:text-[10px] text-orange-600 font-medium">
+                        🔥 {soldCount}
                       </span>
                     )}
                   </div>
 
                   {/* Price Section */}
                   <div className="mt-auto">
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-base sm:text-lg font-bold text-gray-900">
+                    <div className="flex items-baseline gap-1.5 mb-1.5">
+                      <span className="text-sm sm:text-base font-bold text-gray-900">
                         {formatPrice(product.price)}
                       </span>
                       {product.compare_price &&
                         product.compare_price > product.price && (
-                          <span className="text-[10px] sm:text-xs text-gray-400 line-through font-light">
+                          <span className="text-[9px] sm:text-[10px] text-gray-400 line-through font-light">
                             {formatPrice(product.compare_price)}
                           </span>
                         )}
                     </div>
 
                     {/* Stock Status & SKU - IMPROVED */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1">
                         <div
-                          className={`w-1.5 h-1.5 rounded-full ${
+                          className={`w-1 h-1 rounded-full ${
                             product.quantity > 10
                               ? "bg-green-500"
                               : product.quantity > 0
@@ -252,20 +251,20 @@ export default function ProductGrid({
                                 : "bg-red-500"
                           }`}
                         />
-                        <span className="text-[10px] sm:text-xs font-light text-gray-500">
+                        <span className="text-[9px] sm:text-[10px] font-light text-gray-500">
                           {product.quantity > 0
                             ? `${product.quantity} in stock`
                             : "Out of stock"}
                         </span>
                       </div>
-                      <span className="text-xs sm:text-sm font-mono text-gray-900 font-semibold bg-gray-50 px-2 py-1 rounded">
+                      <span className="text-[9px] sm:text-[10px] font-mono text-gray-900 font-semibold bg-gray-50 px-1.5 py-0.5 rounded">
                         {product.sku || "N/A"}
                       </span>
                     </div>
                   </div>
 
                   {/* Add to Cart Button - Appears on hover (desktop only) */}
-                  <button className="hidden sm:block w-full mt-3 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:from-blue-700 hover:to-blue-600 hover:shadow-lg transform hover:scale-[1.02]">
+                  <button className="hidden sm:block w-full mt-2 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-[11px] font-medium rounded-md opacity-0 group-hover:opacity-100 transition-all duration-300 hover:from-blue-700 hover:to-blue-600 hover:shadow-md transform hover:scale-[1.01]">
                     Add to Cart
                   </button>
                 </div>

@@ -56,7 +56,6 @@ export async function getAdminBlogs(filters = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching blogs:", error);
       return { blogs: [], total: 0, error: error.message };
     }
 
@@ -68,7 +67,6 @@ export async function getAdminBlogs(filters = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getAdminBlogs:", error);
     return { blogs: [], total: 0, error: error.message };
   }
 }
@@ -110,7 +108,6 @@ export async function getPublishedBlogs(options = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching published blogs:", error);
       return { blogs: [], total: 0, error: error.message };
     }
 
@@ -122,7 +119,6 @@ export async function getPublishedBlogs(options = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getPublishedBlogs:", error);
     return { blogs: [], total: 0, error: error.message };
   }
 }
@@ -138,7 +134,6 @@ export async function getBlogBySlug(slug) {
       .single();
 
     if (error) {
-      console.error("Error fetching blog:", error);
       return { blog: null, error: "Blog not found" };
     }
 
@@ -150,7 +145,6 @@ export async function getBlogBySlug(slug) {
 
     return { blog: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in getBlogBySlug:", error);
     return { blog: null, error: error.message };
   }
 }
@@ -165,13 +159,11 @@ export async function getBlogById(id) {
       .single();
 
     if (error) {
-      console.error("Error fetching blog:", error);
       return { blog: null, error: error.message };
     }
 
     return { blog: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in getBlogById:", error);
     return { blog: null, error: error.message };
   }
 }
@@ -247,7 +239,6 @@ export async function createBlog(blogData) {
       .single();
 
     if (error) {
-      console.error("Error creating blog:", error);
       return { success: false, error: error.message, blog: null };
     }
 
@@ -256,7 +247,6 @@ export async function createBlog(blogData) {
 
     return { success: true, blog: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in createBlog:", error);
     return { success: false, error: error.message, blog: null };
   }
 }
@@ -321,7 +311,6 @@ export async function updateBlog(id, blogData) {
       .single();
 
     if (error) {
-      console.error("Error updating blog:", error);
       return { success: false, error: error.message, blog: null };
     }
 
@@ -331,7 +320,6 @@ export async function updateBlog(id, blogData) {
 
     return { success: true, blog: data, error: null };
   } catch (error) {
-    console.error("Unexpected error in updateBlog:", error);
     return { success: false, error: error.message, blog: null };
   }
 }
@@ -342,7 +330,6 @@ export async function deleteBlog(id) {
     const { error } = await supabase.from("blogs").delete().eq("id", id);
 
     if (error) {
-      console.error("Error deleting blog:", error);
       return { success: false, error: error.message };
     }
 
@@ -351,7 +338,6 @@ export async function deleteBlog(id) {
 
     return { success: true, error: null };
   } catch (error) {
-    console.error("Unexpected error in deleteBlog:", error);
     return { success: false, error: error.message };
   }
 }
@@ -366,7 +352,6 @@ export async function getBlogCategories() {
       .not("category", "is", null);
 
     if (error) {
-      console.error("Error fetching categories:", error);
       return [];
     }
 
@@ -375,7 +360,6 @@ export async function getBlogCategories() {
     ];
     return categories.sort();
   } catch (error) {
-    console.error("Unexpected error:", error);
     return [];
   }
 }
@@ -388,7 +372,6 @@ export async function getBlogStats() {
       .select("status, view_count");
 
     if (error) {
-      console.error("Error fetching blog stats:", error);
       return {
         total: 0,
         published: 0,
@@ -408,7 +391,6 @@ export async function getBlogStats() {
 
     return stats;
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       total: 0,
       published: 0,

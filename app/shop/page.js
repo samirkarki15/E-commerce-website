@@ -23,38 +23,43 @@ export default async function ShopPage({ searchParams }) {
 
     const category = params?.category || "";
     const brand = params?.brand || "";
-    const minPrice = params?.minPrice ? parseFloat(params.minPrice) : 0;
-    const maxPrice = params?.maxPrice ? parseFloat(params.maxPrice) : 10000;
     const search = params?.search || "";
     const sortBy = params?.sortBy || "created_at";
     const page = params?.page ? parseInt(params.page) : 1;
 
-    const [productsData, categories, brands, priceRange] = await Promise.all([
-      getShopProducts({
-        category,
-        brand,
-        minPrice,
-        maxPrice,
-        search,
-        sortBy,
-        page,
-        limit: 12,
-      }),
+    const [categories, brands, priceRange] = await Promise.all([
       getCategories(),
       getBrands(),
       getPriceRange(),
     ]);
 
+    // Use actual priceRange defaults when no params are set
+    const actualPriceRange = priceRange || { min: 0, max: 10000 };
+    const minPrice = params?.minPrice ? parseFloat(params.minPrice) : actualPriceRange.min;
+    const maxPrice = params?.maxPrice ? parseFloat(params.maxPrice) : actualPriceRange.max;
+
+    // Fetch products with correct price filters
+    const productsDataWithFilters = await getShopProducts({
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      search,
+      sortBy,
+      page,
+      limit: 12,
+    });
+
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="bg-gray-100 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="py-8 sm:py-10">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            <div className="py-5 sm:py-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                 Shop
               </h1>
-              <p className="text-gray-600 mt-2 font-medium">
-                {productsData?.total || 0} products found
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                {productsDataWithFilters?.total || 0} products found
                 {category && ` in ${category}`}
                 {brand && ` by ${brand}`}
                 {search && ` matching "${search}"`}
@@ -69,11 +74,9 @@ export default async function ShopPage({ searchParams }) {
               <ShopSidebar
                 categories={categories || []}
                 brands={brands || []}
-                priceRange={priceRange || { min: 0, max: 1000 }}
+                priceRange={actualPriceRange}
                 selectedCategory={category}
                 selectedBrand={brand}
-                selectedMinPrice={minPrice}
-                selectedMaxPrice={maxPrice}
               />
             </div>
 
@@ -81,15 +84,15 @@ export default async function ShopPage({ searchParams }) {
               <SearchSort
                 search={search}
                 sortBy={sortBy}
-                totalProducts={productsData?.total || 0}
+                totalProducts={productsDataWithFilters?.total || 0}
               />
 
-              {productsData?.products && productsData.products.length > 0 ? (
+              {productsDataWithFilters?.products && productsDataWithFilters.products.length > 0 ? (
                 <ProductGrid
-                  products={productsData.products}
-                  currentPage={productsData.page || 1}
-                  totalPages={productsData.totalPages || 0}
-                  totalProducts={productsData.total || 0}
+                  products={productsDataWithFilters.products}
+                  currentPage={productsDataWithFilters.page || 1}
+                  totalPages={productsDataWithFilters.totalPages || 0}
+                  totalProducts={productsDataWithFilters.total || 0}
                 />
               ) : (
                 <div className="text-center py-12">
@@ -114,7 +117,6 @@ export default async function ShopPage({ searchParams }) {
       </div>
     );
   } catch (error) {
-    console.error("Error in ShopPage:", error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

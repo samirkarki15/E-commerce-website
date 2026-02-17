@@ -94,7 +94,6 @@ export default function AdminOrderDetailPage() {
         }
       }
     } catch (err) {
-      console.error("Error loading order:", err);
       setError("Failed to load order details");
     } finally {
       setLoading(false);
@@ -116,7 +115,6 @@ export default function AdminOrderDetailPage() {
         alert(`Failed to update status: ${result.error}`);
       }
     } catch (error) {
-      console.error("Error updating status:", error);
       alert("Error updating order status");
     } finally {
       setUpdatingStatus(false);
@@ -142,7 +140,6 @@ export default function AdminOrderDetailPage() {
         alert(`Failed to update payment status: ${result.error}`);
       }
     } catch (error) {
-      console.error("Error updating payment status:", error);
       alert("Error updating payment status");
     } finally {
       setUpdatingPayment(false);
@@ -168,7 +165,6 @@ export default function AdminOrderDetailPage() {
         alert(`Failed to cancel order: ${result.error}`);
       }
     } catch (err) {
-      console.error("Error cancelling order:", err);
       alert("Error cancelling order");
     } finally {
       setActionLoading(false);
@@ -201,7 +197,6 @@ export default function AdminOrderDetailPage() {
         alert(`Failed to process refund: ${result.error}`);
       }
     } catch (err) {
-      console.error("Error processing refund:", err);
       alert("Error processing refund");
     } finally {
       setActionLoading(false);

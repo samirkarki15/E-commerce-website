@@ -47,7 +47,6 @@ export async function getUserProfile() {
       },
     };
   } catch (error) {
-    console.error("Error getting user profile:", error);
     return {
       success: false,
       error: error.message,
@@ -103,7 +102,6 @@ export async function getUserOrderCount() {
       count: count || 0,
     };
   } catch (error) {
-    console.error("Error getting order count:", error);
     return {
       success: false,
       count: 0,

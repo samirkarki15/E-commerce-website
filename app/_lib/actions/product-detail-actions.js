@@ -11,8 +11,6 @@ const supabase = createClient(
 // Get single product by ID
 export async function getProductDetail(productId) {
   try {
-    console.log("🔍 Fetching product details for:", productId);
-
     // Get product from products table (images are stored directly here)
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -22,7 +20,6 @@ export async function getProductDetail(productId) {
       .single();
 
     if (productError) {
-      console.error("❌ Error fetching product:", productError);
       return { product: null, error: productError.message };
     }
 
@@ -32,11 +29,9 @@ export async function getProductDetail(productId) {
 
     // Transform product data
     const transformedProduct = transformProduct(product);
-    console.log("✅ Product fetched successfully:", transformedProduct.name);
 
     return { product: transformedProduct, error: null };
   } catch (error) {
-    console.error("💥 Unexpected error:", error);
     return { product: null, error: error.message };
   }
 }
@@ -109,7 +104,6 @@ export async function getRelatedProducts(
       .limit(limit);
 
     if (error) {
-      console.error("❌ Error fetching related products:", error);
       return [];
     }
 
@@ -120,7 +114,6 @@ export async function getRelatedProducts(
 
     return productsWithImages;
   } catch (error) {
-    console.error("💥 Unexpected error:", error);
     return [];
   }
 }

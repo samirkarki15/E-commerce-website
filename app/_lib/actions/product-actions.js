@@ -36,7 +36,6 @@ export async function getAdminProducts(filters = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("Error fetching admin products:", error);
       return {
         products: [],
         total: 0,
@@ -54,7 +53,6 @@ export async function getAdminProducts(filters = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in getAdminProducts:", error);
     return {
       products: [],
       total: 0,
@@ -74,13 +72,11 @@ export async function getProductById(id) {
       .single();
 
     if (error) {
-      console.error("Error fetching product:", error);
       return { product: null, error: error.message };
     }
 
     return { product: data, error: null };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return { product: null, error: error.message };
   }
 }
@@ -94,8 +90,6 @@ export async function createProduct(productData) {
         product: null,
       };
     }
-
-    console.log("Creating product with data:", productData);
 
     const { data, error } = await supabase
       .from("products")
@@ -131,7 +125,6 @@ export async function createProduct(productData) {
       .single();
 
     if (error) {
-      console.error("Supabase error:", error);
       return {
         success: false,
         error: error.message || "Failed to create product",
@@ -139,14 +132,11 @@ export async function createProduct(productData) {
       };
     }
 
-    console.log("Product created successfully:", data);
-
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 
     return { success: true, product: data, error: null };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       error: error.message || "An unexpected error occurred",
@@ -168,7 +158,6 @@ export async function updateProduct(id, productData) {
       .single();
 
     if (error) {
-      console.error("Error updating product:", error);
       return { success: false, error: error.message };
     }
 
@@ -178,7 +167,6 @@ export async function updateProduct(id, productData) {
 
     return { success: true, product: data };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -188,7 +176,6 @@ export async function deleteProduct(id) {
     const { error } = await supabase.from("products").delete().eq("id", id);
 
     if (error) {
-      console.error("Error deleting product:", error);
       return { success: false, error: error.message };
     }
 
@@ -197,7 +184,6 @@ export async function deleteProduct(id) {
 
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -213,7 +199,6 @@ export async function toggleProductStatus(id, currentStatus) {
       .eq("id", id);
 
     if (error) {
-      console.error("Error toggling product status:", error);
       return { success: false, error: error.message };
     }
 
@@ -222,7 +207,6 @@ export async function toggleProductStatus(id, currentStatus) {
 
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return { success: false, error: error.message };
   }
 }
@@ -235,7 +219,6 @@ export async function getProductCategories() {
       .not("category_name", "is", null);
 
     if (error) {
-      console.error("Error fetching categories:", error);
       return [];
     }
 
@@ -245,15 +228,12 @@ export async function getProductCategories() {
 
     return categories.sort();
   } catch (error) {
-    console.error("Unexpected error:", error);
     return [];
   }
 }
 
 export async function createProductWithImages(formData) {
   try {
-    console.log("Creating product with form data...");
-
     const productData = {
       name: formData.get("name"),
       description: formData.get("description"),
@@ -293,8 +273,6 @@ export async function createProductWithImages(formData) {
       productData.slug = formData.get("slug");
     }
 
-    console.log("Creating product with data:", productData);
-
     // Step 1: Create product first
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -310,15 +288,12 @@ export async function createProductWithImages(formData) {
       .single();
 
     if (productError) {
-      console.error("Product creation error:", productError);
       return {
         success: false,
         error: productError.message,
         product: null,
       };
     }
-
-    console.log("Product created, ID:", product.id);
 
     const imageFiles = [];
     const images = [];
@@ -333,8 +308,6 @@ export async function createProductWithImages(formData) {
 
     // Upload images
     if (imageFiles.length > 0) {
-      console.log(`Uploading ${imageFiles.length} images...`);
-
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
         try {
@@ -348,20 +321,15 @@ export async function createProductWithImages(formData) {
             const imageUrl = uploadResult.publicUrl || uploadResult.url;
             if (imageUrl) {
               images.push(imageUrl);
-              console.log("✅ Image uploaded:", imageUrl);
             }
           } else {
-            console.error("Failed to upload image:", uploadResult.error);
           }
         } catch (uploadError) {
-          console.error("Error uploading image:", uploadError);
         }
       }
 
       // Step 2: Update product with images
       if (images.length > 0) {
-        console.log("Updating product with images:", images);
-
         const { error: updateError } = await supabase
           .from("products")
           .update({
@@ -371,14 +339,9 @@ export async function createProductWithImages(formData) {
           .eq("id", product.id);
 
         if (updateError) {
-          console.error("Error updating product images:", updateError);
-        } else {
-          console.log("✅ Product updated with images");
         }
       }
     }
-
-    console.log("✅ Product creation complete");
 
     revalidatePath("/admin/products");
     revalidatePath("/shop");
@@ -389,7 +352,6 @@ export async function createProductWithImages(formData) {
       error: null,
     };
   } catch (error) {
-    console.error("Unexpected error in createProductWithImages:", error);
     return {
       success: false,
       error: error.message || "An unexpected error occurred",

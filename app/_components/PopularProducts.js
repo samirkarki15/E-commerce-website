@@ -29,46 +29,24 @@ export default function PopularProducts() {
       setError(null);
 
       try {
-        console.log("📍 PopularProducts: Fetching data...", {
-          activeFilter,
-          visibleCount,
-          isAdmin,
-        });
-
         // Fetch categories for filter
         const categoriesData = await getPopularCategories();
-        console.log("📍 PopularProducts: Categories fetched", categoriesData);
         setCategories(categoriesData);
 
         // Fetch products - pass empty string if "all", otherwise pass the category
         const categoryParam = activeFilter === "all" ? "" : activeFilter;
-        console.log(
-          "📍 PopularProducts: Fetching products with category:",
-          categoryParam,
-        );
 
         const productsData = await getPopularProducts(
           visibleCount,
           categoryParam,
         );
 
-        console.log("📍 PopularProducts: Products fetched", {
-          count: productsData.length,
-          products: productsData,
-        });
-
         setProducts(productsData);
-
-        if (productsData.length === 0) {
-          console.warn("⚠️ No products returned from getPopularProducts");
-        }
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
         setError("Failed to load products. Please try again.");
 
         // Fallback to mock data if needed
         if (products.length === 0) {
-          console.log("📍 Using mock products as fallback");
           setProducts(getMockProducts());
           setCategories([
             { id: "all", name: "All Products" },
@@ -172,7 +150,6 @@ export default function PopularProducts() {
             <button
               key={category.id}
               onClick={() => {
-                console.log("📍 Filter changed to:", category.id);
                 setActiveFilter(category.id);
                 setVisibleCount(8);
               }}

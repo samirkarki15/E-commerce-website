@@ -75,7 +75,6 @@ export default function EditProductPage() {
       setExistingImages(productImages);
     } catch (err) {
       setError("Failed to load product");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -156,11 +155,8 @@ export default function EditProductPage() {
           if (imageUrl) {
             uploadedImageUrls.push(imageUrl);
           }
-        } else {
-          console.error("Failed to upload image:", uploadResult.error);
         }
       } catch (uploadError) {
-        console.error("Error uploading image:", uploadError);
       }
     }
 
@@ -177,11 +173,7 @@ export default function EditProductPage() {
         const filePath = `${product.id}/${fileName}`;
 
         const deleteResult = await deleteProductImage(filePath);
-        if (!deleteResult.success) {
-          console.error("Failed to delete image:", deleteResult.error);
-        }
       } catch (error) {
-        console.error("Error deleting image:", error);
       }
     }
   };
@@ -252,7 +244,6 @@ export default function EditProductPage() {
       }
     } catch (err) {
       setError(err.message || "An error occurred");
-      console.error(err);
     } finally {
       setSaving(false);
       setUploadingImages(false);

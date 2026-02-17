@@ -21,16 +21,6 @@ export async function getShopProducts(filters = {}) {
   } = filters;
 
   try {
-    console.log("🔄 [getShopProducts] Called with:", {
-      category: category || "(empty)",
-      brand: brand || "(empty)",
-      minPrice,
-      maxPrice,
-      search: search || "(empty)",
-      page,
-      sortBy,
-    });
-
     // Start with base query - CRITICAL
     // app/_lib/actions/shop-actions.js
     // In your getShopProducts function:
@@ -48,27 +38,22 @@ export async function getShopProducts(filters = {}) {
       )
       .eq("is_published", true);
 
-    console.log("✅ [getShopProducts] Base query set with rating fields");
-
     // Apply price filter
     query = query.gte("price", minPrice);
     query = query.lte("price", maxPrice);
 
     // Apply category filter
     if (category && category.trim() !== "") {
-      console.log("✅ [getShopProducts] Applying category filter:", category);
       query = query.eq("category_name", category);
     }
 
     // Apply brand filter
     if (brand && brand.trim() !== "") {
-      console.log("✅ [getShopProducts] Applying brand filter:", brand);
       query = query.eq("brand", brand);
     }
 
     // Apply search filter
     if (search && search.trim() !== "") {
-      console.log("✅ [getShopProducts] Applying search filter:", search);
       query = query.or(
         `name.ilike.%${search}%,description.ilike.%${search}%,brand.ilike.%${search}%`,
       );
@@ -92,8 +77,6 @@ export async function getShopProducts(filters = {}) {
       query = query.order("created_at", { ascending: sortOrder === "asc" });
     }
 
-    console.log("✅ [getShopProducts] Sorting applied:", sortBy);
-
     // Apply pagination
     const offset = (page - 1) * limit;
     query = query.range(offset, offset + limit - 1);
@@ -102,11 +85,6 @@ export async function getShopProducts(filters = {}) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error("❌ [getShopProducts] Supabase error:", {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-      });
       return {
         products: [],
         total: 0,
@@ -114,23 +92,6 @@ export async function getShopProducts(filters = {}) {
         totalPages: 0,
         error: error.message,
       };
-    }
-
-    console.log("✅ [getShopProducts] Success:", {
-      productsReturned: data?.length || 0,
-      totalCount: count || 0,
-      totalPages: Math.ceil((count || 0) / limit),
-    });
-
-    // Log first product to verify rating fields exist
-    if (data && data.length > 0) {
-      console.log("📊 [getShopProducts] Sample product rating data:", {
-        id: data[0].id,
-        name: data[0].name,
-        rating: data[0].rating,
-        review_count: data[0].review_count,
-        sold_count: data[0].sold_count,
-      });
     }
 
     return {
@@ -141,7 +102,6 @@ export async function getShopProducts(filters = {}) {
       error: null,
     };
   } catch (error) {
-    console.error("💥 [getShopProducts] Unexpected error:", error);
     return {
       products: [],
       total: 0,
@@ -157,8 +117,6 @@ export async function getShopProducts(filters = {}) {
  */
 export async function getProductDetail(productId) {
   try {
-    console.log("🔄 [getProductDetail] Fetching product:", productId);
-
     const { data, error } = await supabaseAdmin
       .from("products")
       .select(
@@ -174,21 +132,11 @@ export async function getProductDetail(productId) {
       .single();
 
     if (error) {
-      console.error("❌ [getProductDetail] Error:", error);
       return { product: null, error: error.message };
     }
 
-    console.log("✅ [getProductDetail] Success:", {
-      id: data.id,
-      name: data.name,
-      rating: data.rating,
-      review_count: data.review_count,
-      sold_count: data.sold_count,
-    });
-
     return { product: data, error: null };
   } catch (error) {
-    console.error("💥 [getProductDetail] Unexpected error:", error);
     return { product: null, error: error.message };
   }
 }
@@ -198,8 +146,6 @@ export async function getProductDetail(productId) {
  */
 export async function getCategories() {
   try {
-    console.log("🔄 [getCategories] Fetching categories...");
-
     const { data, error } = await supabaseAdmin
       .from("products")
       .select("category_name")
@@ -207,7 +153,6 @@ export async function getCategories() {
       .not("category_name", "is", null);
 
     if (error) {
-      console.error("❌ [getCategories] Error:", error);
       return [];
     }
 
@@ -221,10 +166,8 @@ export async function getCategories() {
       ),
     ].sort();
 
-    console.log("✅ [getCategories] Found:", categories.length);
     return categories;
   } catch (error) {
-    console.error("💥 [getCategories] Unexpected error:", error);
     return [];
   }
 }
@@ -234,8 +177,6 @@ export async function getCategories() {
  */
 export async function getBrands() {
   try {
-    console.log("🔄 [getBrands] Fetching brands...");
-
     const { data, error } = await supabaseAdmin
       .from("products")
       .select("brand")
@@ -243,7 +184,6 @@ export async function getBrands() {
       .not("brand", "is", null);
 
     if (error) {
-      console.error("❌ [getBrands] Error:", error);
       return [];
     }
 
@@ -257,10 +197,8 @@ export async function getBrands() {
       ),
     ].sort();
 
-    console.log("✅ [getBrands] Found:", brands.length);
     return brands;
   } catch (error) {
-    console.error("💥 [getBrands] Unexpected error:", error);
     return [];
   }
 }
@@ -270,7 +208,6 @@ export async function getBrands() {
  */
 export async function getPriceRange() {
   try {
-    console.log("🔄 [getPriceRange] Calculating price range...");
 
     const { data, error } = await supabaseAdmin
       .from("products")
@@ -279,7 +216,6 @@ export async function getPriceRange() {
       .order("price", { ascending: true });
 
     if (error || !data || data.length === 0) {
-      console.warn("⚠️ [getPriceRange] No products found, using defaults");
       return { min: 0, max: 1000 };
     }
 
@@ -289,13 +225,11 @@ export async function getPriceRange() {
       return { min: 0, max: 1000 };
     }
 
-    const min = Math.floor(Math.min(...prices));
+    const min = 0;
     const max = Math.ceil(Math.max(...prices));
 
-    console.log("✅ [getPriceRange] Found:", { min, max });
     return { min, max };
   } catch (error) {
-    console.error("💥 [getPriceRange] Unexpected error:", error);
     return { min: 0, max: 1000 };
   }
 }

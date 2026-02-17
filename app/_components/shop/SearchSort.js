@@ -35,7 +35,6 @@ export default function SearchSort({
     // Reset to page 1 when searching
     params.delete("page");
 
-    console.log("Search params:", params.toString());
     router.push(`/shop?${params.toString()}`);
   };
 
@@ -44,7 +43,6 @@ export default function SearchSort({
     params.set("sortBy", value);
     params.delete("page"); // Reset to page 1 when sorting
 
-    console.log("Sort params:", params.toString());
     router.push(`/shop?${params.toString()}`);
   };
 

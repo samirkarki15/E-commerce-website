@@ -1,7 +1,7 @@
-// components/shop/ShopSidebar.js - SIMPLE MOBILE COLLAPSE
+// components/shop/ShopSidebar.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ShopSidebar({
@@ -10,79 +10,90 @@ export default function ShopSidebar({
   priceRange = { min: 0, max: 1000 },
   selectedCategory = "",
   selectedBrand = "",
-  selectedMinPrice = 0,
-  selectedMaxPrice = 0,
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // State for mobile filter collapse
+  // Mobile filter toggle
   const [isOpen, setIsOpen] = useState(false);
 
-  // State for price range
-  const [price, setPrice] = useState({
-    min: selectedMinPrice || priceRange?.min || 0,
-    max: selectedMaxPrice || priceRange?.max || 1000,
-  });
+  // Safe values
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  const safeBrands = Array.isArray(brands) ? brands : [];
+  const rangeMin = Number(priceRange?.min) || 0;
+  const rangeMax = Number(priceRange?.max) || 1000;
 
-  // Update price state when props change
-  useEffect(() => {
-    setPrice({
-      min: selectedMinPrice || priceRange?.min || 0,
-      max: selectedMaxPrice || priceRange?.max || 1000,
-    });
-  }, [selectedMinPrice, selectedMaxPrice, priceRange]);
+  // Read current price filters from URL (source of truth)
+  const urlMin = searchParams?.get("minPrice");
+  const urlMax = searchParams?.get("maxPrice");
+  const currentMin = urlMin !== null ? Number(urlMin) : rangeMin;
+  const currentMax = urlMax !== null ? Number(urlMax) : rangeMax;
 
-  // Update filter and preserve other params
+  // Local slider state — initialized from URL or range defaults
+  const [sliderMin, setSliderMin] = useState(currentMin);
+  const [sliderMax, setSliderMax] = useState(currentMax);
+  // Track previous URL values to detect external changes (clear, back button, etc.)
+  const [prevUrlMin, setPrevUrlMin] = useState(urlMin);
+  const [prevUrlMax, setPrevUrlMax] = useState(urlMax);
+
+  // Sync sliders when URL changes externally (not from slider interaction)
+  if (urlMin !== prevUrlMin || urlMax !== prevUrlMax) {
+    setPrevUrlMin(urlMin);
+    setPrevUrlMax(urlMax);
+    const newMin = urlMin !== null ? Number(urlMin) : rangeMin;
+    const newMax = urlMax !== null ? Number(urlMax) : rangeMax;
+    if (sliderMin !== newMin) setSliderMin(newMin);
+    if (sliderMax !== newMax) setSliderMax(newMax);
+  }
+
+  // Navigate with updated params
+  const pushParams = useCallback(
+    (updates) => {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          params.set(key, String(value));
+        } else {
+          params.delete(key);
+        }
+      });
+      params.delete("page");
+      router.push(`/shop?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
+
+  // Apply price filter to URL
+  const applyPriceFilter = useCallback(
+    (min, max) => {
+      const updates = {};
+      // Only add to URL if different from range defaults
+      updates.minPrice = min > rangeMin ? min : null;
+      updates.maxPrice = max < rangeMax ? max : null;
+      pushParams(updates);
+    },
+    [pushParams, rangeMin, rangeMax],
+  );
+
+  // Update a single filter (category/brand)
   const updateFilter = (key, value) => {
-    const params = new URLSearchParams(searchParams?.toString() || "");
-    if (value && value !== "") {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    params.delete("page");
-    router.push(`/shop?${params.toString()}`);
-  };
-
-  // Update price filter
-  const updatePriceFilter = () => {
-    const params = new URLSearchParams(searchParams?.toString() || "");
-    params.set("minPrice", price.min.toString());
-    params.set("maxPrice", price.max.toString());
-    params.delete("page");
-    router.push(`/shop?${params.toString()}`);
+    pushParams({ [key]: value || null });
   };
 
   // Clear all filters
   const clearFilters = () => {
-    setPrice({
-      min: priceRange?.min || 0,
-      max: priceRange?.max || 1000,
-    });
+    setSliderMin(rangeMin);
+    setSliderMax(rangeMax);
     router.push("/shop");
   };
 
-  // Safe arrays
-  const safeCategories = Array.isArray(categories) ? categories : [];
-  const safeBrands = Array.isArray(brands) ? brands : [];
-  const safePriceRange = priceRange || { min: 0, max: 1000 };
-
-  // Check active filters
-  const hasActiveFilters =
-    selectedCategory ||
-    selectedBrand ||
-    (selectedMinPrice && selectedMinPrice > safePriceRange.min) ||
-    (selectedMaxPrice && selectedMaxPrice < safePriceRange.max);
-
-  // Count active filters
+  // Active filter checks
+  const hasPriceFilter = currentMin > rangeMin || currentMax < rangeMax;
+  const hasActiveFilters = selectedCategory || selectedBrand || hasPriceFilter;
   const activeFilterCount = [
     selectedCategory,
     selectedBrand,
-    (selectedMinPrice && selectedMinPrice > safePriceRange.min) ||
-    (selectedMaxPrice && selectedMaxPrice < safePriceRange.max)
-      ? "price"
-      : null,
+    hasPriceFilter ? "price" : null,
   ].filter(Boolean).length;
 
   return (
@@ -119,7 +130,7 @@ export default function ShopSidebar({
         </button>
       </div>
 
-      {/* Sidebar Content - Collapsible on Mobile */}
+      {/* Sidebar Content */}
       <div
         className={`
         bg-white rounded-lg shadow p-4 sm:p-6 space-y-4 sm:space-y-6
@@ -140,7 +151,7 @@ export default function ShopSidebar({
           )}
         </div>
 
-        {/* Categories Section */}
+        {/* Categories */}
         {safeCategories.length > 0 && (
           <div>
             <h3 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">
@@ -163,26 +174,26 @@ export default function ShopSidebar({
                   All Categories
                 </span>
               </label>
-              {safeCategories.map((category) => (
+              {safeCategories.map((cat) => (
                 <label
-                  key={category}
+                  key={cat}
                   className="flex items-center cursor-pointer hover:bg-gray-50 p-1.5 sm:p-2 rounded"
                 >
                   <input
                     type="radio"
                     name="category"
-                    value={category}
-                    checked={selectedCategory === category}
+                    value={cat}
+                    checked={selectedCategory === cat}
                     onChange={() => {
-                      updateFilter("category", category);
+                      updateFilter("category", cat);
                       if (window.innerWidth < 1024) setIsOpen(false);
                     }}
                     className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 cursor-pointer"
                   />
                   <span className="ml-2 sm:ml-3 text-xs sm:text-sm text-gray-700 capitalize">
-                    {category}
+                    {cat}
                   </span>
-                  {selectedCategory === category && (
+                  {selectedCategory === cat && (
                     <span className="ml-auto text-blue-600 font-bold text-xs sm:text-sm">
                       ✓
                     </span>
@@ -193,7 +204,7 @@ export default function ShopSidebar({
           </div>
         )}
 
-        {/* Brands Section */}
+        {/* Brands */}
         {safeBrands.length > 0 && (
           <div>
             <h3 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">
@@ -216,26 +227,26 @@ export default function ShopSidebar({
                   All Brands
                 </span>
               </label>
-              {safeBrands.map((brand) => (
+              {safeBrands.map((b) => (
                 <label
-                  key={brand}
+                  key={b}
                   className="flex items-center cursor-pointer hover:bg-gray-50 p-1.5 sm:p-2 rounded"
                 >
                   <input
                     type="radio"
                     name="brand"
-                    value={brand}
-                    checked={selectedBrand === brand}
+                    value={b}
+                    checked={selectedBrand === b}
                     onChange={() => {
-                      updateFilter("brand", brand);
+                      updateFilter("brand", b);
                       if (window.innerWidth < 1024) setIsOpen(false);
                     }}
                     className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 cursor-pointer"
                   />
                   <span className="ml-2 sm:ml-3 text-xs sm:text-sm text-gray-700">
-                    {brand}
+                    {b}
                   </span>
-                  {selectedBrand === brand && (
+                  {selectedBrand === b && (
                     <span className="ml-auto text-blue-600 font-bold text-xs sm:text-sm">
                       ✓
                     </span>
@@ -246,69 +257,83 @@ export default function ShopSidebar({
           </div>
         )}
 
-        {/* Price Range Section */}
-        <div>
+        {/* Price Range */}
+        <div data-price-slider>
           <h3 className="font-medium text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">
             Price Range
           </h3>
           <div className="space-y-3 sm:space-y-4">
+            {/* Display current values */}
             <div className="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded">
               <span className="text-xs sm:text-sm font-medium text-gray-700">
-                रु {price.min}
+                रु {sliderMin}
               </span>
               <span className="text-xs sm:text-sm font-medium text-gray-700">
-                रु {price.max}
+                रु {sliderMax}
               </span>
             </div>
+
+            {/* Min slider */}
             <div>
               <label className="text-xs text-gray-600 block mb-1 sm:mb-2">
                 Minimum Price
               </label>
               <input
                 type="range"
-                min={safePriceRange.min}
-                max={safePriceRange.max}
-                value={price.min}
+                min={rangeMin}
+                max={rangeMax}
+                value={sliderMin}
+                step={1}
                 onChange={(e) => {
-                  const newMin = parseInt(e.target.value);
-                  if (newMin <= price.max) setPrice({ ...price, min: newMin });
+                  const val = Number(e.target.value);
+                  if (val <= sliderMax) setSliderMin(val);
                 }}
-                onMouseUp={updatePriceFilter}
-                onTouchEnd={updatePriceFilter}
+                onMouseUp={(e) => applyPriceFilter(Number(e.currentTarget.value), sliderMax)}
+                onTouchEnd={(e) => applyPriceFilter(Number(e.currentTarget.value), sliderMax)}
                 className="w-full h-1.5 sm:h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
+
+            {/* Max slider */}
             <div>
               <label className="text-xs text-gray-600 block mb-1 sm:mb-2">
                 Maximum Price
               </label>
               <input
                 type="range"
-                min={safePriceRange.min}
-                max={safePriceRange.max}
-                value={price.max}
+                min={rangeMin}
+                max={rangeMax}
+                value={sliderMax}
+                step={1}
                 onChange={(e) => {
-                  const newMax = parseInt(e.target.value);
-                  if (newMax >= price.min) setPrice({ ...price, max: newMax });
+                  const val = Number(e.target.value);
+                  if (val >= sliderMin) setSliderMax(val);
                 }}
-                onMouseUp={updatePriceFilter}
-                onTouchEnd={updatePriceFilter}
+                onMouseUp={(e) => applyPriceFilter(sliderMin, Number(e.currentTarget.value))}
+                onTouchEnd={(e) => applyPriceFilter(sliderMin, Number(e.currentTarget.value))}
                 className="w-full h-1.5 sm:h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
+
+            {/* Number inputs */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div>
                 <label className="text-xs text-gray-600 block mb-1">Min</label>
                 <input
                   type="number"
-                  min={safePriceRange.min}
-                  max={safePriceRange.max}
-                  value={price.min}
+                  min={rangeMin}
+                  max={rangeMax}
+                  value={sliderMin}
                   onChange={(e) => {
-                    const val = parseInt(e.target.value) || safePriceRange.min;
-                    if (val <= price.max) setPrice({ ...price, min: val });
+                    const val = Number(e.target.value);
+                    if (!isNaN(val) && val >= rangeMin && val <= sliderMax) {
+                      setSliderMin(val);
+                    }
                   }}
-                  onBlur={updatePriceFilter}
+                  onBlur={() => applyPriceFilter(sliderMin, sliderMax)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") applyPriceFilter(sliderMin, sliderMax);
+                  }}
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -316,14 +341,19 @@ export default function ShopSidebar({
                 <label className="text-xs text-gray-600 block mb-1">Max</label>
                 <input
                   type="number"
-                  min={safePriceRange.min}
-                  max={safePriceRange.max}
-                  value={price.max}
+                  min={rangeMin}
+                  max={rangeMax}
+                  value={sliderMax}
                   onChange={(e) => {
-                    const val = parseInt(e.target.value) || safePriceRange.max;
-                    if (val >= price.min) setPrice({ ...price, max: val });
+                    const val = Number(e.target.value);
+                    if (!isNaN(val) && val >= sliderMin && val <= rangeMax) {
+                      setSliderMax(val);
+                    }
                   }}
-                  onBlur={updatePriceFilter}
+                  onBlur={() => applyPriceFilter(sliderMin, sliderMax)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") applyPriceFilter(sliderMin, sliderMax);
+                  }}
                   className="w-full border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -331,7 +361,7 @@ export default function ShopSidebar({
           </div>
         </div>
 
-        {/* Active Filters Display */}
+        {/* Active Filters */}
         {hasActiveFilters && (
           <div className="pt-3 sm:pt-4 border-t">
             <h3 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">
@@ -364,20 +394,16 @@ export default function ShopSidebar({
                   </button>
                 </div>
               )}
-              {(selectedMinPrice > safePriceRange.min ||
-                selectedMaxPrice < safePriceRange.max) && (
+              {hasPriceFilter && (
                 <div className="inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-purple-100 text-purple-800">
                   <span>
-                    रु {selectedMinPrice} - रु {selectedMaxPrice}
+                    रु {currentMin} - रु {currentMax}
                   </span>
                   <button
                     onClick={() => {
-                      updateFilter("minPrice", "");
-                      updateFilter("maxPrice", "");
-                      setPrice({
-                        min: safePriceRange.min,
-                        max: safePriceRange.max,
-                      });
+                      setSliderMin(rangeMin);
+                      setSliderMax(rangeMax);
+                      pushParams({ minPrice: null, maxPrice: null });
                     }}
                     className="ml-1 sm:ml-2 text-purple-600 hover:text-purple-800 font-bold text-sm"
                   >

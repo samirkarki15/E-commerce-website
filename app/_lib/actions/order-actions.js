@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/app/_lib/auth";
 import { supabaseAdmin } from "@/app/_lib/supabase/admin";
+import { sendOrderNotificationEmail } from "@/app/_lib/email";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -27,18 +28,14 @@ function generateOrderNumber() {
 // CREATE ORDER
 export async function createOrder(orderData) {
   try {
-    console.log("📦 Creating order with data:", orderData);
-
     // 1. Get user session
     const session = await auth();
     if (!session?.user) {
-      console.error("❌ No session/user found");
       return {
         success: false,
         error: "Authentication required",
       };
     }
-    console.log("✅ User authenticated:", session.user.email);
 
     // 2. Get user ID
     const { data: user, error: userError } = await supabase
@@ -47,19 +44,12 @@ export async function createOrder(orderData) {
       .eq("email", session.user.email)
       .single();
 
-    if (userError) {
-      console.error("❌ User query error:", userError);
-      console.error("User error details:", JSON.stringify(userError, null, 2));
-    }
-
     if (!user) {
-      console.error("❌ User not found in database for:", session.user.email);
       return {
         success: false,
         error: "User not found in database",
       };
     }
-    console.log("✅ User found:", user.id);
 
     // 3. Get current cart
     const { data: cart, error: cartError } = await supabase
@@ -84,42 +74,19 @@ export async function createOrder(orderData) {
       .eq("is_active", true)
       .single();
 
-    if (cartError) {
-      console.error("❌ Cart query error:", cartError);
-      console.error("Cart error details:", JSON.stringify(cartError, null, 2));
-    }
-
     if (!cart) {
-      console.error("❌ No cart found for user:", user.id);
-
-      // Debug: Check if ANY carts exist
-      const { data: allCarts } = await supabase
-        .from("carts")
-        .select("id, is_active, user_id")
-        .eq("user_id", user.id);
-
-      console.log("📋 All carts for this user:", allCarts);
-
       return {
         success: false,
         error: "Cart not found",
       };
     }
 
-    console.log("✅ Cart found:", {
-      cartId: cart.id,
-      itemCount: cart.cart_items?.length || 0,
-    });
-
     if (!cart.cart_items || cart.cart_items.length === 0) {
-      console.warn("⚠️ Cart is empty - no items");
       return {
         success: false,
         error: "Cart is empty",
       };
     }
-
-    console.log("✅ Cart has items:", cart.cart_items.length);
 
     // 4. Validate stock and calculate totals
     let subtotal = 0;
@@ -157,8 +124,6 @@ export async function createOrder(orderData) {
 
     // 6. Generate order number
     const orderNumber = generateOrderNumber();
-    console.log("📝 Generated order number:", orderNumber);
-    console.log("📝 Creating order for user:", user.id);
 
     // 7. Create order in database
     const { data: order, error: orderError } = await supabase
@@ -186,24 +151,11 @@ export async function createOrder(orderData) {
       .single();
 
     if (orderError) {
-      console.error("❌ Order creation error:", orderError);
-      console.error(
-        "Order error details:",
-        JSON.stringify(orderError, null, 2),
-      );
       return {
         success: false,
         error: orderError.message || "Failed to create order",
       };
     }
-
-    console.log("✅ Order inserted into database:", {
-      orderId: order.id,
-      orderNumber: order.order_number,
-      userId: order.user_id,
-    });
-
-    console.log("✅ Order created in database:", order.id);
 
     // 8. Create order items
     const orderItemsWithOrderId = orderItems.map((item) => ({
@@ -220,12 +172,6 @@ export async function createOrder(orderData) {
       .insert(orderItemsWithOrderId);
 
     if (itemsError) {
-      console.error("❌ Order items error:", itemsError);
-      console.error(
-        "Order items error details:",
-        JSON.stringify(itemsError, null, 2),
-      );
-
       // Delete the order if items fail
       await supabase.from("orders").delete().eq("id", order.id);
 
@@ -234,8 +180,6 @@ export async function createOrder(orderData) {
         error: itemsError.message || "Failed to create order items",
       };
     }
-
-    console.log("✅ Order items created successfully");
 
     // 9. Update product stock
     for (const item of cart.cart_items) {
@@ -254,7 +198,26 @@ export async function createOrder(orderData) {
     // 11. Mark cart as inactive
     await supabase.from("carts").update({ is_active: false }).eq("id", cart.id);
 
-    console.log("✅ Order created successfully:", orderNumber);
+    // 12. Send email notification to admin (non-blocking)
+    try {
+      await sendOrderNotificationEmail({
+        orderNumber: order.order_number,
+        customerName: orderData.shippingAddress?.full_name || "N/A",
+        phoneNumber: orderData.shippingAddress?.phone_number || "N/A",
+        address: orderData.shippingAddress?.address || "N/A",
+        district: orderData.shippingAddress?.district || "N/A",
+        notes: orderData.notes || null,
+        paymentMethod: orderData.paymentMethod || "cod",
+        items: orderItems,
+        subtotal,
+        shippingAmount,
+        taxAmount,
+        totalAmount,
+        estimatedDelivery: getEstimatedDeliveryDate(),
+        customerEmail: session.user.email,
+      });
+    } catch (emailError) {
+    }
 
     revalidatePath("/orders");
     revalidatePath("/cart");
@@ -266,9 +229,6 @@ export async function createOrder(orderData) {
       message: "Order placed successfully!",
     };
   } catch (error) {
-    console.error("💥 Order error:", error);
-    console.error("Order error message:", error?.message);
-    console.error("Order error stack:", error?.stack);
     return {
       success: false,
       error: error?.message || "An unexpected error occurred",
@@ -279,18 +239,13 @@ export async function createOrder(orderData) {
 // GET ORDER BY NUMBER
 export async function getOrderByNumber(orderNumber) {
   try {
-    console.log("📦 Getting order by number:", orderNumber);
-
     const session = await auth();
     if (!session?.user) {
-      console.error("❌ No session/user");
       return {
         success: false,
         error: "Authentication required",
       };
     }
-
-    console.log("✅ User authenticated:", session.user.email);
 
     // Get user ID from database (same way as createOrder)
     const { data: user, error: userError } = await supabase
@@ -300,14 +255,11 @@ export async function getOrderByNumber(orderNumber) {
       .single();
 
     if (userError || !user) {
-      console.error("❌ User not found in database:", session.user.email);
       return {
         success: false,
         error: "User not found",
       };
     }
-
-    console.log("✅ User ID found:", user.id);
 
     // First, try to get the order with maybeSingle() to avoid the "0 rows" error
     const { data: order, error } = await supabase
@@ -335,11 +287,6 @@ export async function getOrderByNumber(orderNumber) {
       .maybeSingle();
 
     if (error) {
-      console.error("❌ Order query error:", error);
-      console.error(
-        "Order query error details:",
-        JSON.stringify(error, null, 2),
-      );
       return {
         success: false,
         error: error.message || "Failed to query order",
@@ -347,25 +294,6 @@ export async function getOrderByNumber(orderNumber) {
     }
 
     if (!order) {
-      console.error("❌ Order not found for number:", orderNumber);
-      console.error("Searched for user_id:", user.id);
-
-      // Debug: Check if ANY orders exist for this user
-      const { data: allOrders } = await supabase
-        .from("orders")
-        .select("id, order_number, user_id")
-        .eq("user_id", user.id);
-
-      console.log("📋 All orders for this user:", allOrders);
-
-      // Debug: Check if order exists with this number (any user)
-      const { data: orderByNum } = await supabase
-        .from("orders")
-        .select("id, order_number, user_id")
-        .eq("order_number", orderNumber);
-
-      console.log("📋 Orders with this order_number (any user):", orderByNum);
-
       return {
         success: false,
         error: `Order not found: ${orderNumber}`,
@@ -404,15 +332,11 @@ export async function getOrderByNumber(orderNumber) {
       items: transformedItems,
     };
 
-    console.log("✅ Order transformed and returned successfully");
-
     return {
       success: true,
       order: transformedOrder,
     };
   } catch (error) {
-    console.error("💥 Get order error:", error);
-    console.error("Get order error message:", error?.message);
     return {
       success: false,
       error: error?.message || "Failed to fetch order",
@@ -423,22 +347,17 @@ export async function getOrderByNumber(orderNumber) {
 // GET USER ORDERS
 export async function getUserOrders(limit = 10, offset = 0) {
   try {
-    console.log("📋 Step 1: Getting user orders...");
-
     // Step 1: Get session
     const session = await auth();
     if (!session?.user?.email) {
-      console.error("❌ Step 1 FAILED: No session or email");
       return {
         success: false,
         orders: [],
         error: "Authentication required",
       };
     }
-    console.log("✓ Step 1 PASSED: Session email:", session.user.email);
 
     // Step 2: Get user ID from database
-    console.log("📋 Step 2: Looking up user ID by email...");
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")
       .select("id")
@@ -446,7 +365,6 @@ export async function getUserOrders(limit = 10, offset = 0) {
       .single();
 
     if (userError) {
-      console.error("❌ Step 2 FAILED: User lookup error:", userError.message);
       return {
         success: false,
         orders: [],
@@ -455,17 +373,14 @@ export async function getUserOrders(limit = 10, offset = 0) {
     }
 
     if (!user || !user.id) {
-      console.error("❌ Step 2 FAILED: User object invalid:", user);
       return {
         success: false,
         orders: [],
         error: "User not found or invalid",
       };
     }
-    console.log("✓ Step 2 PASSED: User ID =", user.id);
 
     // Step 3: Query orders
-    console.log("📋 Step 3: Querying orders for user_id =", user.id);
     const { data: ordersData, error: ordersError } = await supabaseAdmin
       .from("orders")
       .select(
@@ -489,10 +404,6 @@ export async function getUserOrders(limit = 10, offset = 0) {
       .range(offset, offset + limit - 1);
 
     if (ordersError) {
-      console.error(
-        "❌ Step 3 FAILED: Orders query error:",
-        ordersError.message,
-      );
       return {
         success: false,
         orders: [],
@@ -500,10 +411,7 @@ export async function getUserOrders(limit = 10, offset = 0) {
       };
     }
 
-    console.log("✓ Step 3 PASSED: Found", ordersData?.length || 0, "orders");
-
     if (!ordersData || ordersData.length === 0) {
-      console.log("✓ No orders found but query succeeded");
       return {
         success: true,
         orders: [],
@@ -511,7 +419,6 @@ export async function getUserOrders(limit = 10, offset = 0) {
     }
 
     // Step 4: Transform orders
-    console.log("📋 Step 4: Transforming", ordersData.length, "orders...");
     const transformedOrders = ordersData.map((order, index) => {
       try {
         if (!order || !order.id) {
@@ -543,19 +450,9 @@ export async function getUserOrders(limit = 10, offset = 0) {
         };
         return transformed;
       } catch (transformError) {
-        console.error(
-          `❌ Transform error for order ${index}:`,
-          transformError.message,
-        );
         throw transformError;
       }
     });
-
-    console.log(
-      "✓ Step 4 PASSED: Transformed",
-      transformedOrders.length,
-      "orders",
-    );
 
     return {
       success: true,
@@ -563,8 +460,6 @@ export async function getUserOrders(limit = 10, offset = 0) {
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("❌ getUserOrders FATAL ERROR:", errorMsg);
-    console.error("Stack:", error instanceof Error ? error.stack : "No stack");
     return {
       success: false,
       orders: [],
@@ -594,7 +489,6 @@ export async function updateOrderStatus(orderId, status, paymentStatus = null) {
       message: "Order status updated",
     };
   } catch (error) {
-    console.error("Error updating order status:", error);
     return {
       success: false,
       error: "Failed to update order",
@@ -612,8 +506,6 @@ function getEstimatedDeliveryDate() {
 // CANCEL ORDER
 export async function cancelOrder(orderNumber, reason, userId = null) {
   try {
-    console.log("📦 Cancelling order:", orderNumber);
-
     // Get session if userId is not provided
     let userEmail;
     let targetUserId = userId;
@@ -621,7 +513,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
     if (!targetUserId) {
       const session = await auth();
       if (!session?.user) {
-        console.error("❌ No session/user found for cancellation");
         return {
           success: false,
           error: "Authentication required",
@@ -639,7 +530,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
         .single();
 
       if (userError || !user) {
-        console.error("❌ User not found for:", userEmail);
         return {
           success: false,
           error: "User not found",
@@ -647,8 +537,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
       }
       targetUserId = user.id;
     }
-
-    console.log("✅ User ID for cancellation:", targetUserId);
 
     // Get the order first to check if it can be cancelled
     const { data: order, error: orderError } = await supabase
@@ -659,7 +547,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
       .single();
 
     if (orderError || !order) {
-      console.error("❌ Order not found:", orderNumber);
       return {
         success: false,
         error:
@@ -700,7 +587,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
       .eq("user_id", targetUserId);
 
     if (updateError) {
-      console.error("❌ Order cancellation error:", updateError);
       return {
         success: false,
         error: updateError.message || "Failed to cancel order",
@@ -737,14 +623,9 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
             })
             .eq("id", item.product_id);
 
-          console.log(
-            `✅ Restored stock for product ${item.product_id}: ${currentStock} → ${newQuantity}`,
-          );
         }
       }
     }
-
-    console.log("✅ Order cancelled successfully:", orderNumber);
 
     // Revalidate relevant paths
     revalidatePath("/orders");
@@ -756,7 +637,6 @@ export async function cancelOrder(orderNumber, reason, userId = null) {
       orderId: order.id,
     };
   } catch (error) {
-    console.error("💥 Cancel order error:", error);
     return {
       success: false,
       error: error?.message || "An unexpected error occurred",

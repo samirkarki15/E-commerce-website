@@ -15,7 +15,6 @@ export default function ShareButtons({ title, excerpt }) {
           url: window.location.href,
         });
       } catch (error) {
-        console.error("Error sharing:", error);
       }
     } else {
       handleCopyLink();
@@ -28,7 +27,6 @@ export default function ShareButtons({ title, excerpt }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Error copying:", error);
     }
   };
 

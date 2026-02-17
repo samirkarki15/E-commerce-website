@@ -49,8 +49,6 @@ export async function uploadBlogImage(imageFile) {
     const fileName = `${timestamp}_${randomString}.${extension}`;
     const filePath = fileName; // Simple path, just the filename
 
-    console.log("📤 Uploading to blog-images bucket:", filePath);
-
     // Upload to blog-images bucket
     const { error: uploadError } = await supabase.storage
       .from("blog-images")
@@ -61,7 +59,6 @@ export async function uploadBlogImage(imageFile) {
       });
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
       return {
         success: false,
         error: `Upload failed: ${uploadError.message}`,
@@ -73,9 +70,6 @@ export async function uploadBlogImage(imageFile) {
       data: { publicUrl },
     } = supabase.storage.from("blog-images").getPublicUrl(filePath);
 
-    console.log("✅ Blog image uploaded!");
-    console.log("URL:", publicUrl);
-
     return {
       success: true,
       url: publicUrl,
@@ -84,7 +78,6 @@ export async function uploadBlogImage(imageFile) {
       fileName: fileName,
     };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       error: `Unexpected error: ${error.message}`,
@@ -107,17 +100,14 @@ export async function deleteBlogImage(filePath) {
       .remove([filePath]);
 
     if (error) {
-      console.error("Delete error:", error);
       return {
         success: false,
         error: error.message,
       };
     }
 
-    console.log("✅ Blog image deleted:", filePath);
     return { success: true };
   } catch (error) {
-    console.error("Unexpected error:", error);
     return {
       success: false,
       error: error.message,

@@ -44,7 +44,6 @@ export default function AccountPage() {
         setOrderCount(orderResult.count);
       }
     } catch (error) {
-      console.error("Error loading user data:", error);
     } finally {
       setLoading(false);
     }

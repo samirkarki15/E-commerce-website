@@ -46,7 +46,6 @@ export default function AdminOrdersPage() {
           return;
         }
       } catch (error) {
-        console.error("Error checking admin status:", error);
         router.push("/");
       }
     }
@@ -62,11 +61,8 @@ export default function AdminOrdersPage() {
 
       if (result.success) {
         setOrders(result.orders);
-      } else {
-        console.error("Error loading orders:", result.error);
       }
     } catch (error) {
-      console.error("Error loading orders:", error);
     } finally {
       setLoading(false);
     }
@@ -87,11 +83,9 @@ export default function AdminOrdersPage() {
       if (result.success) {
         await loadOrders();
       } else {
-        console.error("Error updating order:", result.error);
         alert("Failed to update order status");
       }
     } catch (error) {
-      console.error("Error updating order:", error);
       alert("Error updating order");
     } finally {
       setUpdating((prev) => ({ ...prev, [orderId]: false }));
@@ -104,27 +98,18 @@ export default function AdminOrdersPage() {
       const order = orders.find((o) => o.id === orderId);
       const currentStatus = order?.status || "pending";
 
-      console.log(
-        `Changing payment status for order ${orderId} to ${newPaymentStatus}`,
-      );
-
       const result = await updateAdminOrderStatus(
         orderId,
         currentStatus,
         newPaymentStatus,
       );
 
-      console.log("Update result:", result);
-
       if (result.success) {
-        console.log("Payment status updated successfully");
         await loadOrders();
       } else {
-        console.error("Error updating payment status:", result.error);
         alert(`Failed to update payment status: ${result.error}`);
       }
     } catch (error) {
-      console.error("Exception updating payment status:", error);
       alert(
         `Error updating payment status: ${error instanceof Error ? error.message : String(error)}`,
       );

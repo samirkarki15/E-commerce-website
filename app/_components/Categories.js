@@ -82,7 +82,6 @@ async function getCategoriesData() {
       .limit(50);
 
     if (error) {
-      console.error("Error fetching categories:", error);
       return [];
     }
 
@@ -111,7 +110,6 @@ async function getCategoriesData() {
 
     return categories;
   } catch (error) {
-    console.error("Unexpected error in getCategoriesData:", error);
     return [];
   }
 }

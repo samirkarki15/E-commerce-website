@@ -1,7 +1,7 @@
 // components/home/HotDeals.js
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductCard from "@/app/_components/ProductCard";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -17,47 +17,43 @@ export default function HotDeals() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(24 * 60 * 60); // 24 hours in seconds
-  const [showLoading, setShowLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(24 * 60 * 60);
+  const productsCacheRef = useRef(new Map());
+  const categoriesLoadedRef = useRef(false);
+  const categoriesCacheRef = useRef([]);
 
-  // Add session check
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
-  // Countdown timer for hot deals - Persists across page reloads
+  // Countdown timer for hot deals - persists across page reloads.
   useEffect(() => {
-    // Initialize timer from localStorage
     const initializeTimer = () => {
       const savedStartTime = localStorage.getItem("hotDealsStartTime");
       const currentTime = Date.now();
 
       if (!savedStartTime) {
-        // First time - set the start time
+        localStorage.setItem("hotDealsStartTime", currentTime.toString());
+        setTimeLeft(24 * 60 * 60);
+        return;
+      }
+
+      const elapsedMilliseconds = currentTime - parseInt(savedStartTime, 10);
+      const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
+      const remainingSeconds = Math.max(0, 24 * 60 * 60 - elapsedSeconds);
+
+      if (remainingSeconds === 0) {
         localStorage.setItem("hotDealsStartTime", currentTime.toString());
         setTimeLeft(24 * 60 * 60);
       } else {
-        // Calculate elapsed time
-        const elapsedMilliseconds = currentTime - parseInt(savedStartTime);
-        const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
-        const remainingSeconds = Math.max(0, 24 * 60 * 60 - elapsedSeconds);
-
-        if (remainingSeconds === 0) {
-          // 24 hours have passed - reset
-          localStorage.setItem("hotDealsStartTime", currentTime.toString());
-          setTimeLeft(24 * 60 * 60);
-        } else {
-          setTimeLeft(remainingSeconds);
-        }
+        setTimeLeft(remainingSeconds);
       }
     };
 
     initializeTimer();
 
-    // Update timer every second
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 0) {
-          // Reset after 24 hours
           localStorage.setItem("hotDealsStartTime", Date.now().toString());
           return 24 * 60 * 60;
         }
@@ -68,58 +64,62 @@ export default function HotDeals() {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch hot deals products
+  // Fetch hot deals data: categories and products in parallel with client cache by filter.
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
-      setIsLoading(true);
+      const categoryKey = activeFilter || "all";
+      const categoryParam = activeFilter === "all" ? "" : activeFilter;
+      const cachedProducts = productsCacheRef.current.get(categoryKey);
+
       setError(null);
+      setIsLoading(true);
+
+      if (cachedProducts) {
+        setProducts(cachedProducts);
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        console.log("🔥 HotDeals: Fetching data...", {
-          activeFilter,
-          visibleCount,
-          isAdmin,
-        });
+        const categoriesPromise = categoriesLoadedRef.current
+          ? Promise.resolve(categoriesCacheRef.current)
+          : getHotDealsCategories();
 
-        // Fetch categories for filter
-        const categoriesData = await getHotDealsCategories();
-        console.log("🔥 HotDeals: Categories fetched", categoriesData);
-        setCategories(categoriesData);
+        // Over-fetch once to make "Load More" instant for users.
+        const [categoriesData, productsData] = await Promise.all([
+          categoriesPromise,
+          getHotDeals(24, categoryParam),
+        ]);
 
-        // Fetch products
-        const categoryParam = activeFilter === "all" ? "" : activeFilter;
-        console.log(
-          "🔥 HotDeals: Fetching hot deals with category:",
-          categoryParam,
-        );
+        if (!isMounted) return;
 
-        const productsData = await getHotDeals(visibleCount, categoryParam);
-
-        console.log("🔥 HotDeals: Products fetched", {
-          count: productsData.length,
-          products: productsData,
-        });
-
-        setProducts(productsData);
-
-        if (productsData.length === 0) {
-          console.warn("⚠️ No hot deal products returned");
+        if (!categoriesLoadedRef.current) {
+          const safeCategories = categoriesData || [];
+          setCategories(safeCategories);
+          categoriesCacheRef.current = safeCategories;
+          categoriesLoadedRef.current = true;
         }
+
+        const safeProducts = productsData || [];
+        setProducts(safeProducts);
+        productsCacheRef.current.set(categoryKey, safeProducts);
       } catch (err) {
-        console.error("❌ Error fetching hot deals:", err);
+        if (!isMounted) return;
         setError("Failed to load hot deals. Please try again.");
-
-        // Fallback to empty state (not mock data for hot deals)
-        if (products.length === 0) {
-          console.log("📍 No fallback data for hot deals");
-        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [activeFilter, visibleCount]);
+    return () => {
+      isMounted = false;
+    };
+  }, [activeFilter]);
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -132,31 +132,17 @@ export default function HotDeals() {
     setVisibleCount((prev) => prev + 4);
   };
 
-  // Loading state - Only show if loading takes more than 800ms (best UX practice)
-  useEffect(() => {
-    let loadingTimer;
-    if (isLoading && products.length === 0) {
-      // Only show loading skeleton if it takes more than 800ms
-      loadingTimer = setTimeout(() => {
-        setShowLoading(true);
-      }, 800);
-    } else {
-      setShowLoading(false);
-    }
-    return () => clearTimeout(loadingTimer);
-  }, [isLoading, products.length]);
-
-  if (showLoading && products.length === 0) {
+  if (isLoading && products.length === 0) {
     return (
       <section className="py-8 md:py-12 bg-gradient-to-r from-red-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
-                🔥 Hot Deals
+                Hot Deals
               </h2>
               <p className="text-sm md:text-base text-gray-600 mt-1">
-                Limited time offers. Don't miss out!
+                Limited time offers. Do not miss out!
               </p>
             </div>
             <div className="bg-white rounded-lg p-3 md:p-4 shadow-lg border-2 border-red-200">
@@ -181,13 +167,12 @@ export default function HotDeals() {
     );
   }
 
-  // Error state
   if (error && products.length === 0) {
     return (
       <section className="py-8 md:py-12 bg-gradient-to-r from-red-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs md:text-sm font-medium mb-3">
-            ⚠️ Error
+            Error
           </div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
             Oops! Something went wrong
@@ -209,11 +194,10 @@ export default function HotDeals() {
   return (
     <section className="py-8 md:py-12 bg-gradient-to-r from-red-50 to-orange-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-        {/* Header with Timer */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div>
             <div className="inline-flex items-center justify-center px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs md:text-sm font-medium mb-2 md:mb-3">
-              🔥 Limited Time
+              Limited Time
             </div>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 md:mb-2">
               Hot Deals & Offers
@@ -225,7 +209,7 @@ export default function HotDeals() {
           <div className="w-full md:w-auto">
             <div className="bg-white rounded-lg md:rounded-xl p-4 md:p-5 shadow-lg border-2 border-red-200">
               <p className="text-xs md:text-sm text-gray-500 font-medium text-center">
-                ⏰ Offer ends in:
+                Offer ends in:
               </p>
               <div className="text-2xl md:text-3xl font-bold text-red-600 mt-2 text-center font-mono">
                 {formatTime(timeLeft)}
@@ -235,14 +219,12 @@ export default function HotDeals() {
           </div>
         </div>
 
-        {/* Category Filters */}
         {categories.length > 0 && (
           <div className="flex flex-wrap justify-center gap-2 mb-6 md:mb-8">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => {
-                  console.log("🔥 Filter changed to:", category.id);
                   setActiveFilter(category.id);
                   setVisibleCount(8);
                 }}
@@ -258,7 +240,6 @@ export default function HotDeals() {
           </div>
         )}
 
-        {/* Products Grid - 2 cols on mobile, 3 on tablet, 4 on desktop */}
         {products.length > 0 ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
@@ -268,7 +249,6 @@ export default function HotDeals() {
                   className="group animate-fadeIn relative"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  {/* Hot Deal Badge */}
                   {product.discount > 0 && (
                     <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
                       <div className="bg-red-600 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold">
@@ -281,7 +261,6 @@ export default function HotDeals() {
               ))}
             </div>
 
-            {/* Load More Button */}
             {products.length > visibleCount && (
               <div className="text-center mt-8 md:mt-12">
                 <button
@@ -309,18 +288,17 @@ export default function HotDeals() {
         ) : (
           <div className="text-center py-8 md:py-12">
             <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-red-100 rounded-full mb-3 md:mb-4">
-              🔥
+              Hot
             </div>
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
               No hot deals available right now
             </h3>
             <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">
               {isAdmin
-                ? "Mark some products as 'Hot Product' with a discount to see them here."
+                ? "Mark some products as Hot Product with a discount to show them here."
                 : "Check back soon for amazing hot deals!"}
             </p>
 
-            {/* Show admin link ONLY for admin users */}
             {isAdmin ? (
               <Link
                 href="/admin/products"
@@ -329,7 +307,6 @@ export default function HotDeals() {
                 Go to Admin Panel to Add Hot Deals
               </Link>
             ) : (
-              // Show different message/links for regular customers
               <div className="space-y-3 md:space-y-4">
                 <Link
                   href="/shop"
@@ -348,7 +325,6 @@ export default function HotDeals() {
           </div>
         )}
 
-        {/* Hot Deals Info Banner */}
         <div className="mt-8 md:mt-12 bg-gradient-to-r from-red-600 to-orange-600 rounded-xl md:rounded-2xl p-6 md:p-8 text-white">
           <div className="grid grid-cols-3 gap-4 md:gap-8">
             <div className="text-center">
@@ -361,7 +337,7 @@ export default function HotDeals() {
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-4xl font-bold mb-1 md:mb-2">
-                ⚡
+                Fast
               </div>
               <p className="text-xs md:text-base text-red-100">Limited Stock</p>
             </div>
@@ -376,7 +352,6 @@ export default function HotDeals() {
           </div>
         </div>
 
-        {/* CTA */}
         <div className="mt-8 md:mt-12 text-center">
           <Link
             href="/shop"
@@ -398,7 +373,7 @@ export default function HotDeals() {
             </svg>
           </Link>
           <p className="text-xs md:text-sm text-gray-600 mt-3">
-            Don't miss out on these amazing deals!
+            Do not miss out on these amazing deals!
           </p>
         </div>
       </div>

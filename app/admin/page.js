@@ -9,14 +9,8 @@ export default async function AdminPage() {
   // Get session
   const session = await auth();
 
-  console.log("🔐 Admin page - Session:", session ? "YES" : "NO");
-  if (session) {
-    console.log("👤 User email:", session.user?.email);
-  }
-
   // If no session, redirect to signin WITH callback URL
   if (!session?.user) {
-    console.log("❌ No session, redirecting to signin");
     redirect("/auth/signin?callbackUrl=/admin");
   }
 
@@ -34,25 +28,13 @@ export default async function AdminPage() {
     dbUser = result.data;
     error = result.error;
   } catch (err) {
-    console.error("Database query error:", err);
     error = err;
   }
 
-  console.log("📊 Database user:", dbUser);
-  if (error) {
-    console.log("❌ Database error:", error);
-  }
   // If error or not admin, redirect to home
   if (error || !dbUser || dbUser?.role !== "admin") {
-    // Added !dbUser check
-    console.log("🚫 Not admin or error, redirecting to home");
-    console.log("User exists:", !!dbUser);
-    console.log("User role:", dbUser?.role);
     redirect("/");
   }
-
-  // SUCCESS - User is admin
-  console.log("✅ User is admin, showing dashboard");
 
   // Fetch dashboard stats
   const statsResult = await getAdminDashboardStats();

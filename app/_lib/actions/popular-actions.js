@@ -11,11 +11,6 @@ const supabase = createClient(
 // Get FEATURED products with images
 export async function getPopularProducts(limit = 8, category = "all") {
   try {
-    console.log("🔄 Fetching FEATURED products with images...", {
-      limit,
-      category,
-    });
-
     let query = supabase
       .from("products")
       .select("*")
@@ -32,18 +27,15 @@ export async function getPopularProducts(limit = 8, category = "all") {
     const { data, error } = await query;
 
     if (error) {
-      console.error("❌ Error fetching featured products:", error);
       return [];
     }
 
     if (!data || data.length === 0) {
-      console.log("ℹ️ No featured products found");
       return [];
     }
 
     return await transformProductsWithImages(data);
   } catch (error) {
-    console.error("💥 Unexpected error in getPopularProducts:", error);
     return [];
   }
 }
@@ -123,20 +115,16 @@ async function transformProductsWithImages(products) {
 // Function to get image from Supabase Storage
 async function getProductImageFromStorage(productId) {
   try {
-    console.log(`🔍 Checking storage for product ${productId} images...`);
-
     // List files in the product's folder
     const { data: files, error } = await supabase.storage
       .from("product-images")
       .list(productId.toString());
 
     if (error) {
-      console.error(`❌ Error listing files for product ${productId}:`, error);
       return null;
     }
 
     if (!files || files.length === 0) {
-      console.log(`ℹ️ No images in storage for product ${productId}`);
       return null;
     }
 
@@ -151,10 +139,8 @@ async function getProductImageFromStorage(productId) {
       .from("product-images")
       .getPublicUrl(`${productId}/${firstFile.name}`);
 
-    console.log(`✅ Found image for product ${productId}:`, publicUrl);
     return publicUrl;
   } catch (error) {
-    console.error(`💥 Error getting image from storage:`, error);
     return null;
   }
 }
@@ -186,7 +172,6 @@ export async function getPopularCategories() {
       .limit(10);
 
     if (error) {
-      console.error("❌ Error fetching categories:", error);
       return getDefaultCategories();
     }
 
@@ -206,7 +191,6 @@ export async function getPopularCategories() {
       })),
     ].slice(0, 5);
   } catch (error) {
-    console.error("💥 Unexpected error:", error);
     return getDefaultCategories();
   }
 }
