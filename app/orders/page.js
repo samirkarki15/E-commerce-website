@@ -93,6 +93,15 @@ export default function OrdersPage() {
     }
   }
 
+  function getTaxFreeOrderTotal(order) {
+    const subtotal = (order.items || []).reduce(
+      (sum, item) => sum + Number(item.total || 0),
+      0,
+    );
+    const shipping = subtotal > 500 ? 0 : 100;
+    return subtotal + shipping;
+  }
+
   // Loading skeleton
   if (loading && orders.length === 0) {
     return (
@@ -251,7 +260,7 @@ export default function OrdersPage() {
 
                   <div className="text-right">
                     <p className="text-2xl md:text-3xl font-bold text-gray-900">
-                      रु {order.total?.toFixed(2) || "0.00"}
+                      रु {getTaxFreeOrderTotal(order).toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       {order.itemCount} item{order.itemCount !== 1 ? "s" : ""}

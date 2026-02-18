@@ -345,7 +345,7 @@ export default function CheckoutPage() {
                         onChange={(e) =>
                           setForm({ ...form, address: e.target.value })
                         }
-                        placeholder="Ward No., Street, Tole, Landmark"
+                        placeholder="Ward No., City, Tole, Municipality"
                       />
                     </div>
 
@@ -584,9 +584,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-lg font-bold border-t pt-4">
                   <span>Total Amount</span>
-                  <span className="text-blue-600">
-                    रु {total.toFixed(2)}
-                  </span>
+                  <span className="text-blue-600">रु {total.toFixed(2)}</span>
                 </div>
               </div>
 

@@ -202,11 +202,16 @@ export default function OrderConfirmationPage() {
     );
   }
 
+  const subtotal = Number(order.summary?.subtotal || 0);
+  const discount = Number(order.summary?.discount || 0);
+  const shipping = subtotal > 500 ? 0 : 100;
+  const finalTotal = subtotal + shipping - discount;
+
   // Generate WhatsApp message with order details
   const whatsappMessage = `Namaste! I want to make payment for my order.
 
 📦 Order Number: ${order.orderNumber}
-💰 Amount: रु ${order.summary.total.toFixed(2)}
+💰 Amount: रु ${finalTotal.toFixed(2)}
 👤 Customer: ${order.shippingAddress?.full_name || order.shippingAddress?.name || "Customer"}
 📱 Phone: ${order.shippingAddress?.phone_number || order.shippingAddress?.phone || "Not provided"}
 
@@ -727,30 +732,19 @@ Please share Khalti/eSewa payment details.`;
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">
-                    रु {order.summary.subtotal.toFixed(2)}
-                  </span>
+                  <span className="font-medium">रु {subtotal.toFixed(2)}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">
-                    रु {order.summary.shipping.toFixed(2)}
-                  </span>
+                  <span className="font-medium">रु {shipping.toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">
-                    रु {order.summary.tax.toFixed(2)}
-                  </span>
-                </div>
-
-                {order.summary.discount > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount</span>
                     <span className="font-medium">
-                      -रु {order.summary.discount.toFixed(2)}
+                      -रु {discount.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -758,7 +752,7 @@ Please share Khalti/eSewa payment details.`;
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>रु {order.summary.total.toFixed(2)}</span>
+                    <span>रु {finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -816,20 +810,6 @@ Please share Khalti/eSewa payment details.`;
                   >
                     <span className="mr-2">📞</span>
                     Contact Support
-                  </Link>
-                  <Link
-                    href="/faq"
-                    className="flex items-center text-blue-600 hover:text-blue-800"
-                  >
-                    <span className="mr-2">❓</span>
-                    View FAQ
-                  </Link>
-                  <Link
-                    href="/shipping"
-                    className="flex items-center text-blue-600 hover:text-blue-800"
-                  >
-                    <span className="mr-2">🚚</span>
-                    Shipping Policy
                   </Link>
                 </div>
               </div>
