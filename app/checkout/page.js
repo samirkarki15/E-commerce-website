@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { getCart } from "@/app/_lib/actions/cart-actions";
 import { createOrder } from "@/app/_lib/actions/order-actions";
+import { useCart } from "@/app/_context/CartContext";
 
 // Nepali districts list
 const NEPALI_DISTRICTS = [
@@ -93,6 +94,7 @@ const NEPALI_DISTRICTS = [
 export default function CheckoutPage() {
   const router = useRouter();
   const { status } = useSession();
+  const { refreshCart } = useCart();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -201,6 +203,7 @@ export default function CheckoutPage() {
       });
 
       if (result.success) {
+        await refreshCart();
         router.push(`/order-confirmation/${result.orderNumber}`);
       } else {
         setError(result.error || "Order creation failed. Please try again.");

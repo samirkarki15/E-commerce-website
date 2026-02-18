@@ -71,7 +71,6 @@ export default function ProductDetailPage() {
       setReviewDataLoaded(false);
 
       try {
-
         const { product: productData, error: productError } =
           await getProductDetail(productId);
 
@@ -187,8 +186,7 @@ export default function ProductDetailPage() {
           url: shareUrl,
         });
         toast.success("Shared successfully!");
-      } catch (error) {
-      }
+      } catch (error) {}
     } else {
       // Fallback: Copy to clipboard
       try {
@@ -261,7 +259,7 @@ export default function ProductDetailPage() {
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Loading Product
           </h3>
-          <p className="text-gray-600">Fetching amazing product details...</p>
+          <p className="text-gray-600">Product details...</p>
         </div>
       </div>
     );

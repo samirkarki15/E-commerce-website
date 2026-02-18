@@ -65,7 +65,8 @@ export async function createOrder(orderData) {
             id,
             name,
             price,
-            quantity
+            quantity,
+            sold_count
           )
         )
       `,
