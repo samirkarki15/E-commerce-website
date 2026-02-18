@@ -1,4 +1,5 @@
 // app/layout.js - UPDATED
+import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import Navigation from "@/app/_components/Navigation";
 import { CartProvider } from "@/app/_context/CartContext";
@@ -16,7 +17,9 @@ export default function RootLayout({ children }) {
       <body className="bg-gray-300">
         <SessionProvider>
           <CartProvider>
-            <Navigation />
+            <Suspense fallback={null}>
+              <Navigation />
+            </Suspense>
             <main>{children}</main>
             <footer className="flex justify-center items-center py-4 bg-gray-800 text-white">
               Copyright © 2026 smartXstore. All rights reserved.
