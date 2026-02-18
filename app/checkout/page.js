@@ -256,6 +256,10 @@ export default function CheckoutPage() {
     );
   }
 
+  const subtotal = Number(cart?.summary?.subtotal || 0);
+  const shipping = subtotal > 500 ? 0 : 100;
+  const total = subtotal + shipping;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 md:py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -570,25 +574,18 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium">
-                    {cart?.summary?.shipping === 0 ? (
+                    {shipping === 0 ? (
                       <span className="text-green-600">Free</span>
                     ) : (
-                      `रु ${cart?.summary?.shipping.toFixed(2)}`
+                      `रु ${shipping.toFixed(2)}`
                     )}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax (13% VAT)</span>
-                  <span className="font-medium">
-                    रु {cart?.summary?.tax.toFixed(2)}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-lg font-bold border-t pt-4">
                   <span>Total Amount</span>
                   <span className="text-blue-600">
-                    रु {cart?.summary?.total.toFixed(2)}
+                    रु {total.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -606,10 +603,6 @@ export default function CheckoutPage() {
                   <li className="flex items-start">
                     <span className="mr-2">📞</span>
                     <span>We'll call before delivery</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">🔄</span>
-                    <span>Free returns within 7 days</span>
                   </li>
                 </ul>
               </div>

@@ -236,6 +236,10 @@ export default function CartPage() {
     );
   }
 
+  const subtotal = Number(cart.summary.subtotal || 0);
+  const shipping = subtotal > 500 ? 0 : 100;
+  const total = subtotal + shipping;
+
   // Show cart with items (only for logged-in users)
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -259,7 +263,7 @@ export default function CartPage() {
               </div>
               <span className="text-sm text-green-700">
                 {cart.summary.itemCount} items • रु
-                {Number(cart.summary.total).toLocaleString("en-IN")}
+                {Number(total).toLocaleString("en-IN")}
               </span>
             </div>
           </div>
@@ -413,14 +417,7 @@ export default function CartPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium">
-                    रु {Number(cart.summary.shipping).toLocaleString("en-IN")}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tax</span>
-                  <span className="font-medium">
-                    रु {Number(cart.summary.tax).toLocaleString("en-IN")}
+                    रु {Number(shipping).toLocaleString("en-IN")}
                   </span>
                 </div>
 
@@ -428,11 +425,11 @@ export default function CartPage() {
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
                     <span>
-                      रु {Number(cart.summary.total).toLocaleString("en-IN")}
+                      रु {Number(total).toLocaleString("en-IN")}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    Including shipping and taxes
+                    Including shipping
                   </p>
                 </div>
               </div>
@@ -454,8 +451,7 @@ export default function CartPage() {
               </div>
 
               <div className="mt-6 text-sm text-gray-500">
-                <p>• Free shipping on orders over रु5000</p>
-                <p>• 30-day return policy</p>
+                <p>• Free shipping on orders over रु500</p>
                 <p>• Secure checkout</p>
               </div>
 
@@ -488,3 +484,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+

@@ -251,7 +251,7 @@ export default function PopularProducts() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
             <div className="text-center">
               <div className="text-xl md:text-3xl font-bold text-blue-600">
-                10K+
+                100+
               </div>
               <div className="text-xs md:text-sm text-gray-600">
                 Happy Customers
@@ -259,7 +259,7 @@ export default function PopularProducts() {
             </div>
             <div className="text-center">
               <div className="text-xl md:text-3xl font-bold text-green-600">
-                4.8
+                5
               </div>
               <div className="text-xs md:text-sm text-gray-600">
                 Average Rating
