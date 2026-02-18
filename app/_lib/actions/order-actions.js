@@ -118,9 +118,9 @@ export async function createOrder(orderData) {
     }
 
     // 5. Calculate other amounts
-    const shippingAmount = subtotal > 100 ? 0 : 5.99;
-    const taxAmount = subtotal * 0.08;
-    const totalAmount = subtotal + shippingAmount + taxAmount;
+    const shippingAmount = subtotal > 500 ? 0 : 100;
+    const taxAmount = 0; // Tax already included in product prices
+    const totalAmount = subtotal + shippingAmount;
 
     // 6. Generate order number
     const orderNumber = generateOrderNumber();
@@ -211,7 +211,6 @@ export async function createOrder(orderData) {
         items: orderItems,
         subtotal,
         shippingAmount,
-        taxAmount,
         totalAmount,
         estimatedDelivery: getEstimatedDeliveryDate(),
         customerEmail: session.user.email,

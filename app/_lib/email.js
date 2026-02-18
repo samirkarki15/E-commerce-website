@@ -41,7 +41,6 @@ function buildOrderEmailHTML({
   items,
   subtotal,
   shippingAmount,
-  taxAmount,
   totalAmount,
   estimatedDelivery,
   customerEmail,
@@ -177,10 +176,6 @@ function buildOrderEmailHTML({
             <td style="padding: 4px 0; font-size: 14px; color: #374151; text-align: right;">${shippingAmount === 0 ? '<span style="color: #16a34a;">Free</span>' : formatCurrency(shippingAmount)}</td>
           </tr>
           <tr>
-            <td style="padding: 4px 0; font-size: 14px; color: #6b7280;">Tax (13% VAT)</td>
-            <td style="padding: 4px 0; font-size: 14px; color: #374151; text-align: right;">${formatCurrency(taxAmount)}</td>
-          </tr>
-          <tr>
             <td colspan="2" style="padding: 8px 0 0 0;"><hr style="border: none; border-top: 1px solid #d1d5db; margin: 0;"></td>
           </tr>
           <tr>
@@ -220,7 +215,6 @@ export async function sendOrderNotificationEmail({
   items,
   subtotal,
   shippingAmount,
-  taxAmount,
   totalAmount,
   estimatedDelivery,
   customerEmail,
@@ -243,7 +237,6 @@ export async function sendOrderNotificationEmail({
       items,
       subtotal,
       shippingAmount,
-      taxAmount,
       totalAmount,
       estimatedDelivery,
       customerEmail,
