@@ -1,6 +1,6 @@
 // components/home/CategoriesGrid.js - FIXED VERSION (no styled-jsx)
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
+import { supabaseAdmin } from "@/app/_lib/supabase/admin";
 import {
   FaTshirt,
   FaMobileAlt,
@@ -21,12 +21,6 @@ import {
 } from "react-icons/fa";
 
 import { GiWatch } from "react-icons/gi";
-
-// Create Supabase client with service role key for server-side
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
 
 // Icon mapping for categories
 const getIconForCategory = (categoryName) => {
@@ -74,7 +68,7 @@ const getIconForCategory = (categoryName) => {
 async function getCategoriesData() {
   try {
     // Fetch unique categories from published products
-    const { data: categoriesData, error } = await supabase
+    const { data: categoriesData, error } = await supabaseAdmin
       .from("products")
       .select("category_name")
       .not("category_name", "is", null) // Only products with category

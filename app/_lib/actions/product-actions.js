@@ -1,20 +1,15 @@
 // app/_lib/actions/product-actions.js
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/app/_lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { uploadProductImage } from "./image-actions";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
 
 export async function getAdminProducts(filters = {}) {
   const { search = "", category = "", page = 1, limit = 20 } = filters;
 
   try {
-    let query = supabase
+    let query = supabaseAdmin
       .from("products")
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false });
@@ -65,7 +60,7 @@ export async function getAdminProducts(filters = {}) {
 
 export async function getProductById(id) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("*")
       .eq("id", id)
@@ -91,7 +86,7 @@ export async function createProduct(productData) {
       };
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .insert([
         {
@@ -132,6 +127,7 @@ export async function createProduct(productData) {
       };
     }
 
+    revalidatePath("/");
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 
@@ -147,7 +143,7 @@ export async function createProduct(productData) {
 
 export async function updateProduct(id, productData) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .update({
         ...productData,
@@ -161,6 +157,7 @@ export async function updateProduct(id, productData) {
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/");
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${id}`);
     revalidatePath("/shop");
@@ -173,12 +170,16 @@ export async function updateProduct(id, productData) {
 
 export async function deleteProduct(id) {
   try {
-    const { error } = await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabaseAdmin
+      .from("products")
+      .delete()
+      .eq("id", id);
 
     if (error) {
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/");
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 
@@ -190,7 +191,7 @@ export async function deleteProduct(id) {
 
 export async function toggleProductStatus(id, currentStatus) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("products")
       .update({
         is_published: !currentStatus,
@@ -202,6 +203,7 @@ export async function toggleProductStatus(id, currentStatus) {
       return { success: false, error: error.message };
     }
 
+    revalidatePath("/");
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 
@@ -213,7 +215,7 @@ export async function toggleProductStatus(id, currentStatus) {
 
 export async function getProductCategories() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("category_name")
       .not("category_name", "is", null);
@@ -274,7 +276,7 @@ export async function createProductWithImages(formData) {
     }
 
     // Step 1: Create product first
-    const { data: product, error: productError } = await supabase
+    const { data: product, error: productError } = await supabaseAdmin
       .from("products")
       .insert([
         {
@@ -324,13 +326,12 @@ export async function createProductWithImages(formData) {
             }
           } else {
           }
-        } catch (uploadError) {
-        }
+        } catch (uploadError) {}
       }
 
       // Step 2: Update product with images
       if (images.length > 0) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseAdmin
           .from("products")
           .update({
             images: images,
@@ -343,6 +344,7 @@ export async function createProductWithImages(formData) {
       }
     }
 
+    revalidatePath("/");
     revalidatePath("/admin/products");
     revalidatePath("/shop");
 

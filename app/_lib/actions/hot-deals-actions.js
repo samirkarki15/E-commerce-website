@@ -1,18 +1,12 @@
 // lib/actions/hot-deals-actions.js - FIXED WITH RATINGS
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
-
-// Use service role key for server actions (has full permissions)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
+import { supabaseAdmin } from "@/app/_lib/supabase/admin";
 
 // Get HOT products with significant discounts for Hot Deals section
 export async function getHotDeals(limit = 8, category = "all") {
   try {
-    let query = supabase
+    let query = supabaseAdmin
       .from("products")
       .select("*")
       .eq("is_published", true)
@@ -138,7 +132,7 @@ function transformProducts(products) {
 // Get hot deals categories
 export async function getHotDealsCategories() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("category_name")
       .eq("is_published", true)

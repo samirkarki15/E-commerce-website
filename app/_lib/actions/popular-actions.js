@@ -1,17 +1,12 @@
 // lib/actions/popular-actions.js - FIXED WITH RATINGS
 "use server";
 
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-);
+import { supabaseAdmin } from "@/app/_lib/supabase/admin";
 
 // Get FEATURED products with images
 export async function getPopularProducts(limit = 8, category = "all") {
   try {
-    let query = supabase
+    let query = supabaseAdmin
       .from("products")
       .select("*")
       .eq("is_published", true)
@@ -118,7 +113,7 @@ async function transformProductsWithImages(products) {
 async function getProductImageFromStorage(productId) {
   try {
     // List files in the product's folder
-    const { data: files, error } = await supabase.storage
+    const { data: files, error } = await supabaseAdmin.storage
       .from("product-images")
       .list(productId.toString());
 
@@ -137,7 +132,7 @@ async function getProductImageFromStorage(productId) {
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage
+    } = supabaseAdmin.storage
       .from("product-images")
       .getPublicUrl(`${productId}/${firstFile.name}`);
 
@@ -165,7 +160,7 @@ function getPlaceholderImage(category) {
 // Get product categories for filter
 export async function getPopularCategories() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select("category_name")
       .eq("is_published", true)
