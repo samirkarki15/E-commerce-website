@@ -93,7 +93,7 @@ export default function ProductGrid({
                 )
               : 0;
 
-          // Get rating and review count - FIXED: Handle multiple field name variations
+          // Get rating, review count, sold count, and short description - handle multiple field name variations
           const rating = product.rating ?? product.averageRating ?? 0;
           const reviewCount =
             product.review_count ??
@@ -101,6 +101,16 @@ export default function ProductGrid({
             product.totalReviews ??
             0;
           const soldCount = product.sold_count ?? product.soldCount ?? 0;
+
+          const shortDescription = (
+            product.short_description ||
+            product.shortDescription ||
+            product.shortDesc ||
+            product.short_desc ||
+            ""
+          )
+            .toString()
+            .trim();
 
           return (
             <Link
@@ -204,7 +214,7 @@ export default function ProductGrid({
 
                   {/* Description - Light, elegant font */}
                   <p className="text-gray-500 text-[10px] sm:text-[11px] leading-relaxed line-clamp-2 mb-1.5 sm:mb-2 font-light hidden sm:block">
-                    {product.short_description ||
+                    {shortDescription ||
                       (product.description
                         ? product.description.substring(0, 50) + "..."
                         : "No description available")}
@@ -220,7 +230,7 @@ export default function ProductGrid({
                     </div>
                     {soldCount > 0 && (
                       <span className="text-[9px] sm:text-[10px] text-orange-600 font-medium">
-                        🔥 {soldCount}
+                        🔥 {soldCount} sold
                       </span>
                     )}
                   </div>

@@ -544,14 +544,7 @@ export default function ProductDetailPage() {
                 <p className="text-sm font-medium text-gray-900">
                   Free Shipping
                 </p>
-                <p className="text-xs text-gray-500">On orders over रु5000</p>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
-                <div className="text-2xl mb-2">↩️</div>
-                <p className="text-sm font-medium text-gray-900">
-                  Easy Returns
-                </p>
-                <p className="text-xs text-gray-500">30-day return policy</p>
+                <p className="text-xs text-gray-500">On orders over रु500</p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm">
                 <div className="text-2xl mb-2">🔒</div>
@@ -890,7 +883,7 @@ export default function ProductDetailPage() {
             {activeTab === "shipping" && (
               <div className="space-y-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Shipping & Returns
+                  Shippings & Returns
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
@@ -900,7 +893,7 @@ export default function ProductDetailPage() {
                     <ul className="space-y-3 text-gray-700">
                       <li className="flex items-start gap-3">
                         <span className="text-green-500">✓</span>
-                        <span>Free shipping on orders over रु5000</span>
+                        <span>Free shipping on orders over रु500</span>
                       </li>
                       <li className="flex items-start gap-3">
                         <span className="text-green-500">✓</span>
@@ -917,10 +910,6 @@ export default function ProductDetailPage() {
                       ↩️ Returns
                     </h4>
                     <ul className="space-y-3 text-gray-700">
-                      <li className="flex items-start gap-3">
-                        <span className="text-green-500">✓</span>
-                        <span>30-day return policy</span>
-                      </li>
                       <li className="flex items-start gap-3">
                         <span className="text-green-500">✓</span>
                         <span>Free returns for defective items</span>

@@ -29,11 +29,21 @@ export default function ProductCard({ product }) {
       )
     : 0;
 
-  // Get rating and review count - FIXED: Handle multiple field name variations
+  // Get rating, review count, sold count, and short description - handle multiple field name variations
   const rating = product.rating ?? product.averageRating ?? 0;
   const reviewCount =
     product.review_count ?? product.reviewCount ?? product.totalReviews ?? 0;
   const soldCount = product.sold_count ?? product.soldCount ?? 0;
+
+  const shortDescription = (
+    product.short_description ||
+    product.shortDescription ||
+    product.shortDesc ||
+    product.short_desc ||
+    ""
+  )
+    .toString()
+    .trim();
 
   // Debug logging (remove in production)
   // console.log("ProductCard Debug:", { rating, reviewCount, soldCount, product });
@@ -346,9 +356,11 @@ export default function ProductCard({ product }) {
 
           {/* Description */}
           <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-            {product.short_description ||
-              product.description ||
-              "No description available"}
+            {shortDescription.length > 0
+              ? shortDescription
+              : product.description
+                ? product.description.substring(0, 50) + "..."
+                : "No description available"}
           </p>
 
           {/* Rating and Sold Count */}

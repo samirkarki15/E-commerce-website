@@ -155,7 +155,7 @@ export default function AboutPage() {
               <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                 <span className="text-white text-2xl font-bold">SR</span>
               </div>
-              <h4 className="font-bold text-gray-900">Saroj Regmi</h4>
+              <h4 className="font-bold text-gray-900">Anoj subedi</h4>
               <p className="text-sm text-gray-600">Founder & CEO</p>
             </div>
             <div className="text-center">
@@ -193,25 +193,25 @@ export default function AboutPage() {
               </div>
               <h4 className="font-bold text-gray-900 mb-2">Free Delivery</h4>
               <p className="text-sm text-gray-600">
-                Free shipping within Kathmandu Valley on orders above रु 500
+                Free shipping on orders above रु 500
               </p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4">
                 <FaHeadset className="text-purple-600" />
               </div>
-              <h4 className="font-bold text-gray-900 mb-2">Expert Support</h4>
+              <h4 className="font-bold text-gray-900 mb-2">Details Support</h4>
               <p className="text-sm text-gray-600">
-                Technical assistance and product guidance from our experts
+                Technical assistance and product information from our store
               </p>
             </div>
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mb-4">
-                <span className="text-orange-600 font-bold text-xl">1</span>
+                <span className="text-orange-600 font-bold text-xl">🔐</span>
               </div>
               <h4 className="font-bold text-gray-900 mb-2">Warranty Support</h4>
               <p className="text-sm text-gray-600">
-                1-year warranty claim assistance for all products
+                Different warranty options available for various products
               </p>
             </div>
           </div>

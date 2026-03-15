@@ -76,6 +76,8 @@ async function transformProductsWithImages(products) {
       return {
         id: product.id,
         name: product.name,
+        short_description: product.short_description || "",
+        shortDescription: product.short_description || "",
         description:
           product.description ||
           product.short_description ||
