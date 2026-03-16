@@ -243,7 +243,7 @@ export default function ProductGrid({
                       </span>
                       {product.compare_price &&
                         product.compare_price > product.price && (
-                          <span className="text-[9px] sm:text-[10px] text-gray-400 line-through font-light">
+                          <span className="text-[9px] sm:text-[13px] text-gray-600 line-through font-light">
                             {formatPrice(product.compare_price)}
                           </span>
                         )}
