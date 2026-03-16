@@ -19,7 +19,7 @@ export const metadata = {
 };
 
 export default function ContactPage() {
-  const whatsappNumber = "+9779800000000"; // Replace with your WhatsApp number
+  const whatsappNumber = "+9779742304520"; // Replace with your WhatsApp number
   const whatsappMessage =
     "Hello! I'm contacting you from the SmartXstore website. I need assistance with:";
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;

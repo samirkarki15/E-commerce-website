@@ -217,7 +217,7 @@ export default function OrderConfirmationPage() {
 
 Please share Khalti/eSewa payment details.`;
 
-  const whatsappUrl = `https://wa.me/9779841234567?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappUrl = `https://wa.me/9779742304520?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -796,7 +796,7 @@ Please share Khalti/eSewa payment details.`;
                 <h3 className="font-medium text-gray-900 mb-3">Need Help?</h3>
                 <div className="space-y-2">
                   <a
-                    href="https://wa.me/9779841234567"
+                    href="https://wa.me/9779742304520"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center text-green-600 hover:text-green-800"
