@@ -48,8 +48,8 @@ export default function ContactPage() {
               </span>
             </h1>
             <p className="text-xl md:text-2xl text-green-100 mb-10 max-w-3xl mx-auto">
-              In Nepal, we prefer WhatsApp for quick and easy communication. Get
-              instant support for inquiries, orders, and tech assistance.
+              We prefer WhatsApp for quick and easy communication. Get instant
+              support for inquiries, orders, and tech assistance.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a

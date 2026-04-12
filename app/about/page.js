@@ -39,7 +39,7 @@ export default function AboutPage() {
             </h1>
             <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto">
               Nepal&apos;s premier destination for cutting-edge technology and
-              innovative gadgets.
+              innovative gadgets as well as cool fashion stuff.
             </p>
             <p className="text-lg text-blue-200 max-w-2xl mx-auto">
               We deliver the latest tech products with exceptional service and
@@ -59,19 +59,19 @@ export default function AboutPage() {
             <div className="space-y-4 text-gray-600">
               <p>
                 Founded in the heart of Kathmandu, SmartXstore began as a small
-                passion project by tech enthusiasts who believed that everyone
-                in Nepal deserved access to the latest technology.
+                shop who believed that everyone in Nepal deserved access to the
+                have latest tech gadgets and accessories.
               </p>
               <p>
                 What started as a modest store on Sinamangal Road has now grown
-                into one of Kathmandu&apos;s most trusted names in electronics
-                and gadgets. Our journey has been fueled by our commitment to
-                bringing innovative products to the Nepali market.
+                into one of Kathmandu&apos;s most trusted names in tech gadgets
+                and accessories.
               </p>
               <p>
                 Today, we serve many satisfied customers across Nepal, offering
-                everything from smartphones and laptops to smart home devices
-                and gaming accessories.
+                everything from tech gadgets to cool fashion stuff with a
+                commitment to quality, affordability, and exceptional customer
+                service.
               </p>
             </div>
           </div>
@@ -115,11 +115,10 @@ export default function AboutPage() {
                 <FaShieldAlt className="text-2xl text-purple-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Genuine Products Guarantee
+                Genuine Products
               </h3>
               <p className="text-gray-600">
-                Every product is 100% authentic with official warranties and
-                after-sales support from authorized service centers.
+                Every product is authentic and we provide after-sales service.
               </p>
             </div>
 
@@ -153,10 +152,10 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">SR</span>
+                <span className="text-white text-2xl font-bold">AS</span>
               </div>
-              <h4 className="font-bold text-gray-900">Anoj subedi</h4>
-              <p className="text-sm text-gray-600">Founder & CEO</p>
+              <h4 className="font-bold text-gray-900">Anoj Subedi</h4>
+              <p className="text-sm text-gray-600">Founder</p>
             </div>
             <div className="text-center">
               <div className="w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -170,7 +169,7 @@ export default function AboutPage() {
                 <span className="text-white text-2xl font-bold">PS</span>
               </div>
               <h4 className="font-bold text-gray-900">Purushottam Subedi</h4>
-              <p className="text-sm text-gray-600">Sales Manager</p>
+              <p className="text-sm text-gray-600">CEO</p>
             </div>
           </div>
         </div>
@@ -275,29 +274,6 @@ export default function AboutPage() {
                   Kathmandu
                 </span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mission & Vision */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-12 text-white mb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-3xl font-bold mb-6">Our Mission</h3>
-              <p className="text-blue-100 text-lg">
-                To make cutting-edge technology accessible and affordable for
-                every Nepali, while providing exceptional customer service and
-                building lasting relationships with our community.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-3xl font-bold mb-6">Our Vision</h3>
-              <p className="text-blue-100 text-lg">
-                To become Nepal&apos;s most trusted and innovative tech
-                retailer, recognized for our product expertise, customer-first
-                approach, and contribution to digital empowerment across the
-                country.
-              </p>
             </div>
           </div>
         </div>

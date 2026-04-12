@@ -421,34 +421,6 @@ export default async function BlogPage({ searchParams }) {
           </div>
         )}
 
-        {/* Newsletter CTA - NEW DESIGN */}
-        <div className="bg-gradient-to-r from-emerald-700 to-teal-700 rounded-2xl p-12 text-center text-white mb-16">
-          <div className="max-w-2xl mx-auto">
-            <div className="text-6xl mb-6">📧</div>
-            <h3 className="text-3xl font-bold mb-4">Never Miss an Update</h3>
-            <p className="text-emerald-100 text-lg mb-8">
-              Join our newsletter and be the first to know about new articles,
-              tech trends, and exclusive offers.
-            </p>
-            <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className="flex-1 px-5 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-emerald-200 focus:outline-none focus:ring-2 focus:ring-white"
-              />
-              <button
-                type="submit"
-                className="px-8 py-3 bg-white text-emerald-700 font-bold rounded-full hover:bg-emerald-50 transition-colors"
-              >
-                Subscribe Now
-              </button>
-            </form>
-            <p className="text-emerald-200 text-sm mt-6">
-              No spam, unsubscribe anytime. We respect your privacy.
-            </p>
-          </div>
-        </div>
-
         {/* Benefits Section - NEW DESIGN */}
         <div className="mb-16">
           <div className="text-center mb-12">
@@ -534,33 +506,6 @@ export default async function BlogPage({ searchParams }) {
                 <h3 className="font-medium text-gray-900">{cat}</h3>
               </Link>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom CTA */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            Ready to Dive Into Tech?
-          </h2>
-          <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-            Start exploring our articles today and become a tech expert
-            tomorrow.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/blog?category=reviews"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-700 transition-colors"
-            >
-              Read Top Reviews
-            </Link>
-            <Link
-              href="/blog?category=tips"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-white text-gray-900 font-bold rounded-full hover:bg-gray-100 transition-colors"
-            >
-              View Tech Tips
-            </Link>
           </div>
         </div>
       </div>
